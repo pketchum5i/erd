@@ -1,0 +1,660 @@
+// ERD for prod_enhanced.tripleseat
+// Generated from Snowflake metadata
+// Render at: https://dbdiagram.io
+
+Project tripleseat {
+  database_type: 'Snowflake'
+  Note: 'Tripleseat event management schema'
+}
+
+// ===========================================
+// CORE TABLES
+// ===========================================
+
+Table accounts {
+  account_id number [pk]
+  account_name text
+  description text
+  addresses variant
+  phone_numbers variant
+  owned_by number
+  business_entity text
+  created_at timestamp_ntz
+  updated_at timestamp_ntz
+  deleted_at timestamp_ntz
+  
+  Note: 'Customer/company accounts'
+}
+
+Table contacts {
+  contact_id number [pk]
+  account_id number [ref: > accounts.account_id]
+  title text
+  first_name text
+  last_name text
+  email_addresses array
+  phone_numbers variant
+  address1 text
+  address2 text
+  city text
+  state text
+  zip_code text
+  country text
+  contact_type text
+  email_opt_in boolean
+  owned_by variant
+  business_entity text
+  created_at timestamp_ntz
+  updated_at timestamp_ntz
+  deleted_at timestamp_ntz
+  site_id number
+  customer_id number
+  
+  Note: 'Individual contacts linked to accounts'
+}
+
+Table locations {
+  location_id number [pk]
+  site_id number
+  location_name text
+  canonical_location_name text
+  room_ids variant
+  addresses variant
+  phone_numbers variant
+  currency_code text
+  photos variant
+  customer_id number
+  timezone text
+  created_at timestamp_tz
+  updated_at timestamp_tz
+  
+  Note: 'Physical venue locations'
+}
+
+Table leads {
+  lead_id number [pk]
+  site_id number
+  location_id number [ref: > locations.location_id]
+  location_name text
+  owner text
+  first_name text
+  last_name text
+  company text
+  contact_id number [ref: > contacts.contact_id]
+  phone_number text
+  phone_number_extension text
+  email_address text
+  additional_information text
+  lead_form_id number
+  lead_sources array
+  referral_source_id number
+  referral_source_other text
+  booking_lead boolean
+  created_at timestamp_tz
+  updated_at timestamp_tz
+  deleted_at timestamp_tz
+  converted_at timestamp_tz
+  turned_down_at timestamp_tz
+  turned_down_reason text
+  contact_preference text
+  email_opt_in boolean
+  event_id number
+  event_style text
+  event_description text
+  event_type text
+  event_budget text
+  date_flexibility text
+  guest_count number
+  event_date date
+  start_time time
+  end_time time
+  campaign_name text
+  campaign_source text
+  campaign_medium text
+  campaign_term text
+  campaign_content text
+  market_segment_id number
+  business_entity text
+  
+  Note: 'Sales leads and inquiries'
+}
+
+Table events {
+  event_id number [pk]
+  site_id number
+  location_id number [ref: > locations.location_id]
+  location_name text
+  event_name text
+  post_as text
+  description text
+  userentry_event_type text
+  event_type text
+  event_style text
+  guaranteed_guest_count number
+  guest_count number
+  status text [ref: > status_rank.status]
+  lost_reason text
+  event_date date
+  event_start timestamp_tz
+  event_end timestamp_tz
+  event_start_utc timestamp_tz
+  event_end_utc timestamp_tz
+  event_start_time time
+  event_end_time time
+  setup_minutes number
+  teardown_minutes number
+  event_start_time_with_setup time
+  event_end_time_with_teardown time
+  event_start_with_setup timestamp_tz
+  event_end_with_teardown timestamp_tz
+  food_and_beverage_min number
+  price_per_person number
+  deposit_amount number
+  rental_fee number
+  actual_amount number
+  grand_total number
+  amount_due number
+  document_ids text
+  room_ids variant
+  managing_user_ids variant
+  contact_id number [ref: > contacts.contact_id]
+  lead_id number [ref: > leads.lead_id]
+  selected_lead_sources array
+  account_id number [ref: > accounts.account_id]
+  secondary_contacts array
+  unassigned boolean
+  owned_by number
+  created_by number
+  updated_by number
+  created_at timestamp_ntz
+  updated_at timestamp_ntz
+  deleted_at timestamp_ntz
+  booking_id number
+  customer_id number
+  business_entity text
+  
+  Note: 'Booked events/reservations'
+}
+
+// ===========================================
+// EVENT DETAIL TABLES (1:many from events)
+// ===========================================
+
+Table events_bay_resources {
+  event_id number [pk, ref: > events.event_id]
+  room_id number [pk]
+  room_name text
+  updated_at timestamp_ntz
+  
+  Note: 'Simulator bays assigned to events'
+}
+
+Table events_category_totals {
+  event_id number [pk, ref: > events.event_id]
+  category text [pk]
+  amount number
+  updated_at timestamp_ntz
+  
+  Note: 'Revenue breakdown by category per event'
+}
+
+Table events_net_revenue {
+  event_id number [pk, ref: - events.event_id]
+  deposit_amount number
+  actual_amount number
+  grand_total number
+  true_total number
+  taxes number
+  gratuity number
+  net_revenue number
+  updated_at timestamp_ntz
+  
+  Note: 'Net revenue calculations per event (1:1)'
+}
+
+Table events_status_changes {
+  event_id number [pk, ref: > events.event_id]
+  statuschangedatetime timestamp_ntz [pk]
+  previous_status text
+  status text
+  updated_at timestamp_ntz
+  
+  Note: 'Event status change history'
+}
+
+// ===========================================
+// REFERENCE/LOOKUP TABLES
+// ===========================================
+
+Table status_rank {
+  status text [pk]
+  status_rank number
+  
+  Note: 'Status ordering/ranking lookup'
+}
+
+// ===========================================
+// VIEWS - BOOKINGS
+// ===========================================
+
+Table bookings [headercolor: #9b59b6] {
+  booking_id number [pk]
+  booking_name text
+  post_as text
+  account_id number [ref: > accounts.account_id]
+  contact_account_id number
+  contact_id number [ref: > contacts.contact_id]
+  secondary_contacts array
+  location_id number [ref: > locations.location_id]
+  created_by number
+  updated_by number
+  created_at timestamp_ntz
+  updated_at timestamp_ntz
+  owned_by number
+  status text
+  tentative_date date
+  definite_date date
+  lost_date date
+  total_actual_amount number
+  total_event_actual_amount number
+  total_event_grand_total number
+  deleted_at timestamp_ntz
+  start_date date
+  end_date date
+  event_ids array
+  site_id number
+  market_segment text
+  customer_id number
+  
+  Note: 'View: booking containers for events'
+}
+
+Table booking_custom_fields [headercolor: #9b59b6] {
+  booking_id number [ref: > bookings.booking_id]
+  bookingfieldvalue_id number
+  custom_field_id number
+  custom_field_name text
+  custom_field_slug text
+  custom_field_value text
+  
+  Note: 'View: custom fields for bookings'
+}
+
+Table booking_status_changes [headercolor: #9b59b6] {
+  booking_id number [ref: > bookings.booking_id]
+  statuschangedatetime timestamp_ntz
+  created_by number
+  status text
+  previous_status text
+  
+  Note: 'View: booking status history'
+}
+
+// ===========================================
+// VIEWS - CUSTOM FIELDS
+// ===========================================
+
+Table account_custom_fields [headercolor: #e67e22] {
+  account_id number [ref: > accounts.account_id]
+  accountfieldvalue_id number
+  custom_field_id number
+  custom_field_name text
+  custom_field_slug text
+  custom_field_value text
+  
+  Note: 'View: custom fields for accounts'
+}
+
+Table contact_custom_fields [headercolor: #e67e22] {
+  contact_id number [ref: > contacts.contact_id]
+  contactfieldvalue_id number
+  custom_field_id number
+  custom_field_name text
+  custom_field_slug text
+  custom_field_value text
+  
+  Note: 'View: custom fields for contacts'
+}
+
+Table events_customfields [headercolor: #e67e22] {
+  eventcustomfieldid number
+  event_id number [ref: > events.event_id]
+  custom_field_id number
+  custom_field_name text
+  custom_field_slug text
+  custom_field_required boolean
+  value text
+  
+  Note: 'View: custom fields for events'
+}
+
+// ===========================================
+// VIEWS - EVENT DOCUMENTS & FINANCIALS
+// ===========================================
+
+Table events_documents [headercolor: #1abc9c] {
+  event_id number [ref: > events.event_id]
+  document_id number [pk]
+  document_title text
+  template_id number
+  deleted_at timestamp_ntz
+  
+  Note: 'View: documents attached to events'
+}
+
+Table events_document_category_totals [headercolor: #1abc9c] {
+  event_id number [ref: > events.event_id]
+  document_id number [ref: > events_documents.document_id]
+  category text
+  amount number
+  
+  Note: 'View: document category totals'
+}
+
+Table events_document_financials [headercolor: #1abc9c] {
+  event_id number [ref: > events.event_id]
+  document_id variant
+  amount_due number
+  discounts_amount number
+  grand_total_amount number
+  
+  Note: 'View: document financial summary'
+}
+
+Table events_document_line_items [headercolor: #1abc9c] {
+  event_id number [ref: > events.event_id]
+  document_id number [ref: > events_documents.document_id]
+  lineitem_id number [pk]
+  section text
+  category_id number
+  description text
+  price number
+  quantity number
+  total_price number
+  discount number
+  grand_total number
+  position number
+  section_position number
+  
+  Note: 'View: individual line items on documents'
+}
+
+Table events_attachments [headercolor: #1abc9c] {
+  event_id number [ref: > events.event_id]
+  content_type text
+  filename text
+  url text
+  
+  Note: 'View: file attachments on events'
+}
+
+Table events_taxesandfees [headercolor: #1abc9c] {
+  event_id number [ref: > events.event_id]
+  charge_category text
+  charge_total number
+  
+  Note: 'View: taxes/fees per event'
+}
+
+// ===========================================
+// VIEWS - ROOMS & RESOURCES
+// ===========================================
+
+Table rooms [headercolor: #f39c12] {
+  room_id number [pk]
+  room_name text
+  description text
+  capacity number
+  descendants array
+  unassigned boolean
+  
+  Note: 'View: rooms/bays with hierarchy'
+}
+
+Table booked_sims [headercolor: #f39c12] {
+  event_id number [ref: > events.event_id]
+  sim_id number
+  sim_name text
+  capacity variant
+  location_id number [ref: > locations.location_id]
+  site_id number
+  is_unassigned boolean
+  description text
+  
+  Note: 'View: simulators booked per event'
+}
+
+// ===========================================
+// VIEWS - LOOKUP/REFERENCE DATA
+// ===========================================
+
+Table sites [headercolor: #95a5a6] {
+  site_id number [pk]
+  customer_id variant
+  name text
+  subdomain text
+  timezone text
+  currency_code text
+  
+  Note: 'View: Tripleseat site/tenant info'
+}
+
+Table users [headercolor: #95a5a6] {
+  user_id number [pk]
+  first_name text
+  last_name text
+  title text
+  email text
+  phone_number text
+  login_count number
+  login_at timestamp_ntz
+  customer_id number
+  created_at timestamp_ntz
+  updated_at timestamp_ntz
+  
+  Note: 'View: Tripleseat users'
+}
+
+Table event_types [headercolor: #95a5a6] {
+  event_type_id number [pk]
+  event_type_name text
+  
+  Note: 'View: event type lookup'
+}
+
+Table contact_types [headercolor: #95a5a6] {
+  contact_type_id number [pk]
+  contact_type_name text
+  
+  Note: 'View: contact type lookup'
+}
+
+Table lead_sources [headercolor: #95a5a6] {
+  lead_source_id number [pk]
+  lead_source_name text
+  
+  Note: 'View: lead source lookup'
+}
+
+Table lead_types [headercolor: #95a5a6] {
+  lead_type_id number [pk]
+  lead_type_name text
+  
+  Note: 'View: lead type lookup'
+}
+
+Table referral_sources [headercolor: #95a5a6] {
+  referral_source_id number [pk]
+  referral_source_name text
+  
+  Note: 'View: referral source lookup'
+}
+
+Table lost_reasons [headercolor: #95a5a6] {
+  lost_reason_id number [pk]
+  lost_reason_name text
+  
+  Note: 'View: lost reason lookup'
+}
+
+Table task_types [headercolor: #95a5a6] {
+  task_type_id number [pk]
+  task_type_name text
+  
+  Note: 'View: task type lookup'
+}
+
+Table payment_methods [headercolor: #95a5a6] {
+  payment_method_id number [pk]
+  payment_method_name text
+  
+  Note: 'View: payment method lookup'
+}
+
+Table line_item_categories [headercolor: #95a5a6] {
+  category_id variant [pk]
+  category_name text
+  
+  Note: 'View: line item category lookup'
+}
+
+// ===========================================
+// VIEWS - BILLING
+// ===========================================
+
+Table billing_taxesandfees [headercolor: #e74c3c] {
+  charge_id number [pk]
+  inclusive boolean
+  charge_name text
+  internal_name text
+  
+  Note: 'View: tax/fee configuration'
+}
+
+Table billing_taxesandfees_location_values [headercolor: #e74c3c] {
+  charge_id number [ref: > billing_taxesandfees.charge_id]
+  location_id number [ref: > locations.location_id]
+  pct_value number
+  
+  Note: 'View: location-specific tax rates'
+}
+
+// ===========================================
+// VIEWS - AGGREGATES
+// ===========================================
+
+Table leads_agg [headercolor: #2c3e50] {
+  lead_ids array
+  site_id number
+  location_id number
+  location_name text
+  owner text
+  first_name text
+  last_name text
+  company text
+  contact_id number
+  phone_number text
+  phone_number_extension text
+  email_address text
+  additional_information text
+  lead_form_id number
+  lead_sources array
+  referral_source_id number
+  referral_source_other text
+  booking_lead boolean
+  created_at timestamp_tz
+  deleted_at timestamp_tz
+  converted_at timestamp_tz
+  turned_down_at timestamp_tz
+  turned_down_reason text
+  contact_preference text
+  email_opt_in boolean
+  event_id number
+  event_style text
+  event_description text
+  event_type text
+  event_budget text
+  date_flexibility text
+  guest_count number
+  event_date date
+  start_time time
+  end_time time
+  campaign_name text
+  campaign_source text
+  campaign_medium text
+  campaign_term text
+  campaign_content text
+  market_segment_id number
+  business_entity text
+  
+  Note: 'View: aggregated/deduplicated leads'
+}
+
+// ===========================================
+// TABLE GROUPS (for visual organization)
+// ===========================================
+
+TableGroup core_tables {
+  accounts
+  contacts
+  locations
+  leads
+  events
+}
+
+TableGroup event_detail_tables {
+  events_bay_resources
+  events_category_totals
+  events_net_revenue
+  events_status_changes
+}
+
+TableGroup booking_views {
+  bookings
+  booking_custom_fields
+  booking_status_changes
+}
+
+TableGroup custom_field_views {
+  account_custom_fields
+  contact_custom_fields
+  events_customfields
+}
+
+TableGroup document_views {
+  events_documents
+  events_document_category_totals
+  events_document_financials
+  events_document_line_items
+  events_attachments
+  events_taxesandfees
+}
+
+TableGroup room_views {
+  rooms
+  booked_sims
+}
+
+TableGroup lookup_views {
+  sites
+  users
+  event_types
+  contact_types
+  lead_sources
+  lead_types
+  referral_sources
+  lost_reasons
+  task_types
+  payment_methods
+  line_item_categories
+  status_rank
+}
+
+TableGroup billing_views {
+  billing_taxesandfees
+  billing_taxesandfees_location_values
+}
+
+TableGroup aggregate_views {
+  leads_agg
+}

@@ -1,0 +1,1853 @@
+// DBML Schema for PROD_ENHANCED.MINDBODY
+// MindBody business management data - fitness/wellness studio operations
+// Generated from Snowflake schema
+
+Project prod_enhanced_mindbody {
+  database_type: 'Snowflake'
+  Note: '''
+    MindBody business management system data for fitness/wellness studios.
+    Contains client information, appointments, sales transactions, memberships,
+    contracts, payments, and scheduling data.
+  '''
+}
+
+// ============================================================================
+// CORE REFERENCE TABLES
+// ============================================================================
+
+Table STUDIOS {
+  STUDIOID number [pk, note: 'Unique studio identifier']
+  STUDIONAME text
+  CANONICAL_NAME text
+  ISFRANCHISE boolean
+  STUDIOSHORT text
+  BUSINESSDESCRIPTION text
+  LOCALESTR text
+  SITECREATIONDATE date
+  REGIONSHORT text
+  CITY text
+  STATEPROVCODE text
+  COUNTRYCODE text
+  BILLMBOCLTID number
+  TIMEZONEID text
+  TIMEZONEOFFSET number
+  TIMEZONEOFFSETMIN number
+  AUTOPAYRETRYDAYS number
+  ENABLEACH boolean
+  TAXINCLUSIVEPRICES boolean
+  SPAFINDEROPTIN boolean
+  SPAFINDERGIFTCARD boolean
+  CCPROCESSOR text
+  ALLOWMINDBODYEMAILOPTIN boolean
+  SHOWINVENTORYTOTHIRDPARTY boolean
+  REGIONID number
+  CORPREGIONID number
+  TEMPLATESITE boolean
+  DEMOSITE boolean
+  SITEDEACTIVATED boolean
+  AUTOEMAILREPLYNAME text
+  AUTOEMAILREPLYADDRESS text
+  DELETED boolean
+  DATEDELETED date
+  CREATEDDATETIMEUTC timestamp_tz
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Master table of MindBody studio sites'
+}
+
+Table LOCATIONS {
+  LOCATIONID number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  LOCATIONNAME text
+  CANONICAL_NAME text
+  TAX1 float
+  TAX2 float
+  TAX3 float
+  TAX4 float
+  TAX5 float
+  LABELTAX1 text
+  LABELTAX2 text
+  LABELTAX3 text
+  LABELTAX4 text
+  LABELTAX5 text
+  ENABLETAX1 boolean
+  ENABLETAX2 boolean
+  ENABLETAX3 boolean
+  ENABLETAX4 boolean
+  ENABLETAX5 boolean
+  PHONE text
+  EMAIL text
+  CONTACTNAME text
+  ADDRESS text
+  ADDRESSLN2 text
+  CITY text
+  STATEPROVCODE text
+  POSTALCODE text
+  COUNTRY text
+  LONGITUDE float
+  LATITUDE float
+  GEOLOCATION geography
+  ACTIVE boolean
+  INVACTIVE boolean
+  TAXID text
+  MBACCOUNTNUMBER text
+  CREATEDDATETIMEUTC timestamp_tz
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Physical locations within each studio'
+}
+
+// ============================================================================
+// CLIENT TABLES
+// ============================================================================
+
+Table CLIENTS {
+  CLIENTID number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  LASTNAME text
+  FIRSTNAME text
+  ADDRESS text
+  CITY text
+  STATE text
+  POSTALCODE text
+  FOREIGNZIP text
+  COUNTRY text
+  LONGITUDE float
+  LATITUDE float
+  EMAIL text
+  CELLPHONE text
+  HOMEPHONE text
+  BIRTHDATE date
+  GENDEROPTION text
+  HOMESTUDIO number
+  REFERREDBY text
+  REFERRER text
+  SOURCEID number
+  INACTIVE boolean
+  DEACTIVATEDDATETIME timestamp_tz
+  REACTIVATEDDATETIME timestamp_tz
+  MERGETIMESTAMP timestamp_tz
+  MERGECLIENTID number
+  DELETED boolean
+  STAFFALERTMSGSHORT text
+  LIABILITYRELEASE boolean
+  LIABILITYRELBY number
+  LIABILITYAGREEMENTDATETIME timestamp_tz
+  SUSPENDED boolean
+  SUSPENDEDFROMDATE date
+  SUSPENDEDTODATE date
+  CREATEDBY number
+  MODIFIEDDATETIME timestamp_tz
+  MODIFIEDBY number
+  BUSINESS_DUMMY_ACCOUNT boolean
+  INTERNAL_EVENTS_ACCOUNT boolean
+  MODIFIEDDATETIMEUTC timestamp_tz
+  CREATEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Client/member master data'
+}
+
+Table CLIENTSTATUSES {
+  STATUSID number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  STATUSDESC text
+  ACTIVE boolean
+  ISSYSTEM boolean
+  CREATEDDATETIMEUTC timestamp_tz
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Client status reference values'
+}
+
+Table CLIENTSTATUSLOG {
+  CLIENTSTATUSLOGID number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  CLIENTID number [ref: > CLIENTS.CLIENTID]
+  PREVSTATUSID number
+  PREVSTATUS text
+  CURRENTSTATUSID number
+  CURRENTSTATUS text
+  UPDATEDDATETIME timestamp_tz
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'History of client status changes'
+}
+
+Table CLIENTACCOUNTS {
+  CLIENTACCOUNTID number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  CLIENTID number [ref: > CLIENTS.CLIENTID]
+  FIRSTNAME text
+  LASTNAME text
+  ENTRYDATE date
+  AMOUNT number
+  UNRECONCILEDAMOUNT number
+  SALEID number
+  SDID number
+  LOADED_CASHEQ number
+  LOADED_RETURN number
+  LOADED_REALLIABILITY number
+  LOADED_COMP number
+  DEPOSITRELEASEDBYID number
+  DEPOSITRELEASEDATE date
+  PAYMENTID number
+  BUSINESS_DUMMY_ACCOUNT boolean
+  INTERNAL_EVENTS_ACCOUNT boolean
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Client account balances and credits'
+}
+
+Table CLIENTACCOUNTSDPAYMENTS {
+  CLIENTACCOUNTSDPAYMENTID number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  SDPAYMENTID number
+  CLIENTACCOUNTID number [ref: > CLIENTACCOUNTS.CLIENTACCOUNTID]
+  PAIDWITHSDPAYMENTID number
+  PAIDWITHPAYMENTID number
+  PAYMENT_TYPE text
+  CASHEQ boolean
+  DEBITCARDIDS array
+  DEBITCARDEXTERNALID text
+  AMOUNT number
+  ITEMTAX1 number
+  ITEMTAX2 number
+  ITEMTAX3 number
+  ITEMTAX4 number
+  ITEMTAX5 number
+  DISCAMT number
+  CLIENTACCOUNTAMOUNT number
+  CREATEDDATETIMEUTC timestamp_tz
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Client account payment transactions'
+}
+
+Table CLIENTRELATIONSHIPS {
+  CLIENTID1 number [pk, ref: > CLIENTS.CLIENTID]
+  CLIENTID2 number [pk]
+  RELNAME1 text [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  RELNAME2 text
+  ACTIVE boolean
+  CREATEDDATETIMEUTC timestamp_tz
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Relationships between clients (family, etc.)'
+}
+
+Table RELATIONSHIPS {
+  RELATIONSHIPID number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  RELNAME1 text
+  RELNAME2 text
+  ACTIVE boolean
+  CREATIONDATETIME timestamp_tz
+  CREATEDDATETIMEUTC timestamp_tz
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Relationship type definitions'
+}
+
+Table CLIENTNOTIFICATIONPREFERENCES {
+  CLIENTNOTIFICATIONPREFERENCEID number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  CLIENTID number [ref: > CLIENTS.CLIENTID]
+  PROMOTIONALEMAILOPTIN boolean
+  PROMOTIONALTEXTOPTIN boolean
+  SCHEDULEEMAILOPTIN boolean
+  ACCOUNTEMAILOPTIN boolean
+  ACCOUNTTEXTOPTIN boolean
+  OPERATIONALEMAILOPTIN boolean
+  CREATEDDATETIMEUTC timestamp_tz
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Client communication preferences'
+}
+
+Table CLIENTCUSTOMFIELDS {
+  CUSTOMFIELDID number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  CUSTOMFIELD text
+  CUSTOMTYPEID number
+  CUSTOMFIELDTYPE text
+  ACTIVE boolean
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Custom field definitions for clients'
+}
+
+Table CLIENTCUSTOMVALUES {
+  CLIENTID number [pk, ref: > CLIENTS.CLIENTID]
+  CUSTOMFIELD text [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  ACTIVEFIELD boolean
+  VALUE text
+  CREATEDDATETIMEUTC timestamp_tz
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Custom field values for clients'
+}
+
+Table CLIENTFILES {
+  CLIENTFILEID number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  CLIENTID number [ref: > CLIENTS.CLIENTID]
+  FILENAME text
+  FILECATEGORY text
+  FILESIZE number
+  FILETYPE text
+  UPLOADTIMESTAMP timestamp_tz
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Files attached to client records'
+}
+
+Table CLIENTINDEXES {
+  CLIENTINDEXID number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  CLIENTINDEXNAME text
+  ACTIVE boolean
+  CREATEDDATETIMEUTC timestamp_tz
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Client index/tag definitions'
+}
+
+Table CLIENTINDEXVALUES {
+  CLIENTINDEXVALUEID number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  CLIENTINDEXVALUENAME text
+  CLIENTINDEXID number [ref: > CLIENTINDEXES.CLIENTINDEXID]
+  ACTIVE boolean
+  CREATEDDATETIMEUTC timestamp_tz
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Possible values for client indexes'
+}
+
+Table CLIENTINDEXDATA {
+  CLIENTID number [pk, ref: > CLIENTS.CLIENTID]
+  CLIENTINDEXID number [pk, ref: > CLIENTINDEXES.CLIENTINDEXID]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  INDEX_NAME text
+  CLIENTINDEXVALUEID number [ref: > CLIENTINDEXVALUES.CLIENTINDEXVALUEID]
+  VALUE text
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Client index assignments'
+}
+
+Table GENDEROPTIONS {
+  GENDEROPTIONID number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  GENDEROPTION text
+  ACTIVE boolean
+  ISSYSTEM boolean
+  CREATEDDATETIMEUTC timestamp_tz
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Gender option reference values'
+}
+
+Table REFERRERS {
+  REFERRERID number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  REFERRERNAME text
+  PARENTNAME text
+  CREATEDDATETIMEUTC timestamp_tz
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Referral source reference values'
+}
+
+// ============================================================================
+// MEMBERSHIP & CONTRACT TABLES
+// ============================================================================
+
+Table CONTRACTS {
+  CONTRACTID number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  CONTRACTNAME text
+  FREQUENCY number
+  FREQUENCYNUM number
+  TOTALNUMPAYMENTS number
+  CONTRACTBILLDAYS number
+  INTRODUCTORYOFFERTYPE number
+  ISPACKAGE boolean
+  DEPOSIT number
+  DISCPERCENT float
+  ENABLETAX1 boolean
+  ENABLETAX2 boolean
+  ENABLETAX3 boolean
+  ENABLETAX4 boolean
+  ENABLETAX5 boolean
+  FIRSTAUTOPAY number
+  LASTAUTOPAY number
+  NORMALAUTOPAY number
+  FIRSTAPFREE boolean
+  LASTAPFREE boolean
+  AUTORENEWING boolean
+  RENEWTOMONTHTOMONTH boolean
+  ISMONTHTOMONTH boolean
+  CONTRACTTEXT text
+  DISCONTINUED boolean
+  DELETED boolean
+  CREATEDDATETIMEUTC timestamp_tz
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Contract/membership template definitions'
+}
+
+Table CONTRACTITEMS {
+  CONTRACTITEMID number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  CONTRACTID number [ref: > CONTRACTS.CONTRACTID]
+  CONTRACTNAME text
+  PRODUCTID float [ref: > PRODUCTS.PRODUCTID]
+  PRODUCTDESCRIPTION text
+  CATEGORYID number [ref: > CATEGORIES.CATEGORYID]
+  CATEGORY text
+  PRODUCT_DATACLEANSTATUS text
+  CATEGORY_DATACLEANSTATUS text
+  PRICE number
+  AUTOPAY boolean
+  CREATEDDATETIMEUTC timestamp_tz
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Items included in contract templates'
+}
+
+Table CONTRACTTERMINATIONCODES {
+  TERMINATIONCODE number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  TERMINATIONCODENAME text
+  ACTIVE boolean
+  ISSYSTEM boolean
+  CREATEDDATETIMEUTC timestamp_tz
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Contract termination reason codes'
+}
+
+Table CONTRACTSUSPENSIONTYPES {
+  SUSPTYPEID number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  SUSPENSIONTYPE text
+  CURATION number
+  SUSPFEE number
+  ACTIVE boolean
+  CREATEDDATETIMEUTC timestamp_tz
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Contract suspension type definitions'
+}
+
+Table CLIENTCONTRACTS {
+  CLIENTCONTRACTID number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  SALELOCATIONID number
+  CLIENTID number [ref: > CLIENTS.CLIENTID]
+  RECCLIENTID number
+  CONTRACTID number [ref: > CONTRACTS.CONTRACTID]
+  CONTRACTNAME text
+  CLIENTCONTRACTSALEID number
+  AGREEMENTDATE date
+  STARTDATE date
+  ENDDATE date
+  LASTACTIVEDATE date
+  CONTRACTSALE_PAYMENT number
+  FIRSTAUTOPAY number
+  LASTAUTOPAY number
+  NORMALAUTOPAY number
+  FIRSTAUTOPAY_DISCOUNT number
+  LASTAUTOPAY_DISCOUNT number
+  NORMALAUTOPAY_DISCOUNT number
+  CONTRACTSTANDARD_FIRSTAUTOPAY number
+  CONTRACTSTANDARD_LASTAUTOPAY number
+  CONTRACTSTANDARD_NORMALAUTOPAY number
+  FIRSTAUTOPAY_FREE boolean
+  LASTAUTOPAY_FREE boolean
+  PRORATEDDATE date
+  ISMONTHTOMONTH boolean
+  RENEWTOMONTHTOMONTH boolean
+  AUTORENEWING boolean
+  AUTORENEWCLIENTCONTRACTID number
+  TERMINATEDBY number
+  TERMINATIONTIMESTAMP timestamp_tz
+  TERMINATIONDATE date
+  TERMINATIONCODE number
+  TERMINATIONNOTES text
+  IAGREED boolean
+  IAGREEDATETIME timestamp_tz
+  AGREEDINBIZMODEEMPID number
+  SIGNATUREFILEEXISTS boolean
+  CONTRACTTEXT text
+  NOTES text
+  REJECTIONCOUNT number
+  ACTIVATIONOFFSETDAYS number
+  FREQUENCY number
+  FREQUENCYTYPEID number
+  TOTALNUMBEROFPAYMENTS number
+  DELETED boolean
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Client contract/membership instances'
+}
+
+Table CLIENTCONTRACTITEMS {
+  CLIENTCONTRACTITEM_ID number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  SALELOCATIONID number
+  CLIENTID number [ref: > CLIENTS.CLIENTID]
+  RECCLIENTID number
+  CLIENTCONTRACTID number [ref: > CLIENTCONTRACTS.CLIENTCONTRACTID]
+  CONTRACTID number [ref: > CONTRACTS.CONTRACTID]
+  CONTRACTNAME text
+  PRODUCTID float [ref: > PRODUCTS.PRODUCTID]
+  DESCRIPTION text
+  ITEMTYPE text
+  CATEGORYID number [ref: > CATEGORIES.CATEGORYID]
+  REVENUE_CATEGORY text
+  PRODUCT_DATACLEANSTATUS text
+  CATEGORY_DATACLEANSTATUS text
+  SERIESTYPE text
+  PRICE number
+  AUTOPAY boolean
+  PRORATE_PRICE number
+  CLIENTCONTRACTSALEID number
+  SDID number [ref: > SALES_DETAILS.SDID]
+  SESSIONCOUNT number
+  DURATION number
+  DURATIONUNIT text
+  PRORATE_SESSIONCOUNT number
+  PRORATE_DURATIONVALUE number
+  FIRSTPAYMENT_PAIDONSALE boolean
+  PRORATE_PAIDATTIMEOFSALE boolean
+  CREATEDDATETIMEUTC timestamp_tz
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Items within client contracts'
+}
+
+Table CLIENTCONTRACTSUSPENSIONS {
+  SUSPENDID number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  CLIENTCONTRACTID number [ref: > CLIENTCONTRACTS.CLIENTCONTRACTID]
+  CONTRACTNAME text
+  SUSPENDSTART date
+  SUSPENDEND date
+  DURATION number
+  DURATIONUNITNAME text
+  SUSPTYPEID number [ref: > CONTRACTSUSPENSIONTYPES.SUSPTYPEID]
+  SUSPENSIONTYPE text
+  SUSPFEE number
+  UNSUSPENDED boolean
+  SUSPENDNOTES text
+  EMPLOYEEID number
+  LASTMODIFIED date
+  TERMINATIONTIMESTAMP timestamp_tz
+  CONTRACTTERMINATIONDATE date
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Client contract suspension periods'
+}
+
+Table CLIENTMEMBERSHIPDATA {
+  CLIENTMEMBERSHIPDATA_ID number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  LOCATIONID number [ref: > LOCATIONS.LOCATIONID]
+  CLIENTID number [ref: > CLIENTS.CLIENTID]
+  CURRENT_STATUSID number
+  CURRENT_STATUS text
+  CLIENTCONTRACTID number [ref: > CLIENTCONTRACTS.CLIENTCONTRACTID]
+  CONTRACTID number [ref: > CONTRACTS.CONTRACTID]
+  CONTRACTNAME text
+  AGREEMENTDATE date
+  CONTRACT_STARTDATE date
+  CONTRACT_ENDDATE date
+  PMTREFNO number [ref: > PAYMENT_DATA.PMTREFNO]
+  PRODUCTID float [ref: > PRODUCTS.PRODUCTID]
+  TYPEPURCH text
+  RETURNED boolean
+  PAYMENTDATE date
+  ACTIVEDATE date
+  EXPDATE date
+  PAYMENTAMOUNT number
+  SERIESTYPEID number [ref: > SERIESTYPES.SERIESTYPEID]
+  SERIESTYPENAME text
+  DELETED boolean
+  TYPEID number
+  TYPEGROUPID number [ref: > TYPEGROUPS.TYPEGROUPID]
+  TYPEGROUP text
+  TYPEGROUPDATACLEANSTATUS text
+  FIRSTAUTOPAY number
+  LASTAUTOPAY number
+  NORMALAUTOPAY number
+  FIRSTAUTOPAY_DISCOUNT number
+  LASTAUTOPAY_DISCOUNT number
+  NORMALAUTOPAY_DISCOUNT number
+  FIRSTAUTOPAY_FREE boolean
+  LASTAUTOPAY_FREE boolean
+  AUTORENEWING boolean
+  ISMONTHTOMONTH boolean
+  TERMINATIONTIMESTAMP timestamp_tz
+  TERMINATIONDATE date
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Current membership status for clients'
+}
+
+Table CLIENTMEMBERSHIPSTATUSLOG {
+  CLIENTMEMBERSHIPSTATUSLOGID number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  CLIENTID number [ref: > CLIENTS.CLIENTID]
+  STATUS text
+  UPDATEDDATETIMEUTC timestamp_tz
+  PRIORSTATUS text
+  PRIORSTATUS_UPDATETIMESTAMP timestamp_tz
+  CLIENTMEMBERSHIPID number
+  CLIENTCONTRACTID number [ref: > CLIENTCONTRACTS.CLIENTCONTRACTID]
+  PMTREFNO number [ref: > PAYMENT_DATA.PMTREFNO]
+  CONTRACTNAME text
+  TYPEPURCH text
+  SERIESTYPENAME text
+  NORMALAUTOPAY number
+  RETURNED boolean
+  SERIESTYPEID number [ref: > SERIESTYPES.SERIESTYPEID]
+  CONTRACTPAYMENT_CURRENTSTATUS text
+  TERMINATIONTIMESTAMP timestamp_tz
+  TERMINATIONDATE date
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'History of membership status changes'
+}
+
+Table CLIENTMEMBERSHIPICONS {
+  CLIENTMEMBERSHIPICON_ID number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  CLIENTID number [ref: > CLIENTS.CLIENTID]
+  ACTIVEDATE date
+  EXPDATE date
+  TYPEPURCH text
+  SERIESTYPEID number
+  SERIESTYPENAME text
+  ICONNUM number
+  ICONLETTER text
+  ICONCOLOR text
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Visual membership icons for clients'
+}
+
+Table MEMBERSHIPICONS {
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  ICONNUM number
+  ICONLETTER text
+  ICONCOLOR text
+  ICONDESC text
+  
+  Note: 'Membership icon definitions'
+}
+
+Table SERIESTYPES {
+  SERIESTYPEID number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  SERIESTYPENAME text
+  SERVICEDISCOUNTPERC float
+  PRODDISCOUNTPERC float
+  ALLOWCLTMODEUNPAIDSCHED boolean
+  ALLOWNOPAYAPPTBOOKING boolean
+  ALLOWNONMEMBERPURCHASES boolean
+  ALLOWNONMEMBERRETAILPURCHASES boolean
+  ISSYSTEM boolean
+  ACTIVE boolean
+  CREATIONDATETIME timestamp_tz
+  CREATEDDATETIMEUTC timestamp_tz
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Membership/series type definitions'
+}
+
+// ============================================================================
+// PRODUCT & CATEGORY TABLES
+// ============================================================================
+
+Table CATEGORIES {
+  CATEGORYID number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  CATEGORYNAME text
+  ACTIVE boolean
+  SERVICE boolean
+  ISPRIMARY boolean
+  ISSECONDARY boolean
+  DELETED boolean
+  DATACLEANSTATUS text
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Product/service category definitions'
+}
+
+Table PRODUCTS {
+  PRODUCTID float [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  BARCODEID text
+  DESCRIPTION text
+  ITEMTYPE text
+  CATEGORYID number [ref: > CATEGORIES.CATEGORYID]
+  CATEGORY2ID number
+  SUBCATEGORYID number
+  CATEGORY text
+  CATEGORYDATACLEANSTATUS text
+  SERIESTYPE text
+  TYPEID number
+  TYPEGROUPID number [ref: > TYPEGROUPS.TYPEGROUPID]
+  TYPEGROUP text
+  TYPEGROUPDATACLEANSTATUS text
+  CLASS boolean
+  GIFTCERTIFICATE boolean
+  DEBITCARD boolean
+  ISENROLLMENTFEE boolean
+  UNITPRICE number
+  ONLINEPRICE number
+  ENABLETAX1 boolean
+  ENABLETAX2 boolean
+  ENABLETAX3 boolean
+  ENABLETAX4 boolean
+  ENABLETAX5 boolean
+  COUNT number
+  DURATION number
+  DURATIONUNIT text
+  INTRODUCTORY boolean
+  INTRONEWCLIENT boolean
+  INTRORETURNCLIENT boolean
+  CONTRACTONLY boolean
+  CLIENTCREDIT number
+  DISCONTINUED boolean
+  DELETED boolean
+  INVISIBLE boolean
+  DATACLEANSTATUS text
+  CREATEDDATETIME timestamp_tz
+  MODIFIEDDATETIME timestamp_tz
+  CREATEDBY number
+  MODIFIEDBY number
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Products and services catalog'
+}
+
+Table PRODUCTSERIESTYPESETTING {
+  PRODUCTID number [pk, ref: > PRODUCTS.PRODUCTID]
+  SERIESTYPEID number [pk, ref: > SERIESTYPES.SERIESTYPEID]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  SETTING number [pk]
+  CREATEDDATETIMEUTC timestamp_tz
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Product-series type associations'
+}
+
+Table INVENTORY {
+  INVENTORYID number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  LOCATIONID number [ref: > LOCATIONS.LOCATIONID]
+  ENTRYDATETIME timestamp_tz
+  PRODUCTID float [ref: > PRODUCTS.PRODUCTID]
+  DESCRIPTION text
+  PRODUCT_DATACLEANSTATUS text
+  CATEGORYID number [ref: > CATEGORIES.CATEGORYID]
+  CATEGORY text
+  CATEGORY_DATACLEANSTATUS text
+  SUPPLIERID number
+  COLORID number [ref: > COLORS.COLORID]
+  SIZEID number
+  QUANTITY number
+  EMPLOYEE number
+  OFFSETSALEID number
+  UNITCOST number
+  SHIPPINGCOST number
+  TAXES number
+  TOTALLINEITEMCOST number
+  TOTALUNITCOST number
+  WEIGHTEDCOSTYTD number
+  DEFECTIVE boolean
+  ADJUSTMENT boolean
+  INVENTORYNOTES text
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Inventory transactions and adjustments'
+}
+
+Table COLORS {
+  COLORID number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  COLORNAME text
+  ACTIVE boolean
+  DELETED boolean
+  LOCKED boolean
+  CREATEDDATETIMEUTC timestamp_tz
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Product color options'
+}
+
+Table PROMOTIONS {
+  PROMOTIONID number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  PROMOTIONCODE text
+  PROMOTIONNAME text
+  ACTIVE boolean
+  ACTIVATIONDATE date
+  EXPIRATIONDATE date
+  DISCPERC float
+  DISCAMT number
+  MAXNUMBEROFUSES number
+  DAYSFROMCLOSEDATE number
+  ALLOWINONLINESTORE boolean
+  EXCLUSIVEDISCOUNT boolean
+  DAYSUN boolean
+  DAYMON boolean
+  DAYTUE boolean
+  DAYWED boolean
+  DAYTHU boolean
+  DAYFRI boolean
+  DAYSAT boolean
+  CREATIONDATETIME timestamp_tz
+  CREATEDDATETIMEUTC timestamp_tz
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Promotional discount codes'
+}
+
+// ============================================================================
+// SALES & PAYMENT TABLES
+// ============================================================================
+
+Table SALES {
+  SALEID number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  LOCATIONID number [ref: > LOCATIONS.LOCATIONID]
+  SALEDATE_OF_RECORD date
+  SALEDATE date
+  SALETIMESTAMP timestamp_tz
+  CLIENTID number [ref: > CLIENTS.CLIENTID]
+  EMPLOYEEID number [ref: > TRAINERS.TRAINERID]
+  SALESREPID number
+  PAYMENTAMOUNT number
+  AMOUNTTENDERED number
+  PAYMENTMETHOD number
+  TAX number
+  CARDHOLDER text
+  HASRETURN boolean
+  CASHREGISTERID number
+  CLOSED boolean
+  CLOSEID number
+  ORDERSTATE number
+  SOURCEID number
+  RESTSOURCE text
+  CREATEDDATETIMEUTC timestamp_tz
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Sales transactions header'
+}
+
+Table SALES_DETAILS {
+  SDID number [pk, note: 'Sales detail ID']
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  LOCATIONID number [ref: > LOCATIONS.LOCATIONID]
+  SALEID number [ref: > SALES.SALEID]
+  PMTREFNO number [ref: > PAYMENT_DATA.PMTREFNO]
+  RECCLIENTID number
+  CLIENTCONTRACTID number [ref: > CLIENTCONTRACTS.CLIENTCONTRACTID]
+  CONTRACTID number [ref: > CONTRACTS.CONTRACTID]
+  CONTRACTNAME text
+  RETURNED boolean
+  QUANTITY number
+  GROSSUNITPRICE number
+  PROMOTIONID number [ref: > PROMOTIONS.PROMOTIONID]
+  PROMOTIONCODE text
+  PROMOTIONNAME text
+  DISCOUNT float
+  DISCAMT number
+  PRORATEAMOUNT number
+  UNITPRICE number
+  SDPAYMENTAMT number
+  PRODUCTID float [ref: > PRODUCTS.PRODUCTID]
+  BARCODEID text
+  DESCRIPTION text
+  CATEGORYID number [ref: > CATEGORIES.CATEGORYID]
+  CATEGORY2ID number
+  SUBCATEGORYID number
+  CATEGORY text
+  PRODUCT_DATACLEANSTATUS text
+  CATEGORY_DATACLEANSTATUS text
+  COLORID number [ref: > COLORS.COLORID]
+  SIZEID number
+  CLASSID number
+  NOTAX boolean
+  ITEMTAX1 number
+  ITEMTAX2 number
+  ITEMTAX3 number
+  ITEMTAX4 number
+  ITEMTAX5 number
+  ITEMDEBITCARDID number
+  PAYMENTDEBITCARDID number
+  TIPTRNID number
+  COMMISSIONTRNID number
+  CLOSED boolean
+  CLOSEID number
+  INTROOFFERTYPE number
+  NOTES text
+  CREATEDDATETIMEUTC timestamp_tz
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Sales transaction line items'
+}
+
+Table PAYMENTS {
+  PAYMENTID number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  SALEID number [ref: > SALES.SALEID]
+  PAYMENTDISCOUNT number
+  PAYMENTAMOUNT number
+  PAYMENTTAX number
+  PAYMENTTYPEID number [ref: > PAYMENT_TYPES.PAYMENTTYPEID]
+  PAYMENT_TYPE text
+  CASHEQ boolean
+  HAS_CASH_ORIGIN boolean
+  REAL_LIABILITY boolean
+  CCTRANSID number [ref: > CCTRANS.TRANSACTIONNUMBER]
+  CCSWIPED boolean
+  CCTRANSACTIONSTATUS text
+  CCSETTLED boolean
+  DEBITCARDIDS array
+  DEBITCARDEXTERNALID text
+  PAYMENTNOTES text
+  CREATEDDATETIMEUTC timestamp_tz
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Payment methods used for sales'
+}
+
+Table SDPAYMENTS {
+  SDPAYMENTID number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  PAYMENTID number [ref: > PAYMENTS.PAYMENTID]
+  PAYMENT_TYPE text
+  CASHEQ boolean
+  HAS_CASH_ORIGIN boolean
+  REAL_LIABILITY boolean
+  CCTRANSID number
+  CCSWIPED boolean
+  CCTRANSACTIONSTATUS text
+  CCSETTLED boolean
+  DEBITCARDIDS array
+  DEBITCARDEXTERNALID text
+  SDID number [ref: > SALES_DETAILS.SDID]
+  DISCAMT number
+  SDPAYMENTAMOUNT number
+  ITEMTAX1 number
+  ITEMTAX2 number
+  ITEMTAX3 number
+  ITEMTAX4 number
+  ITEMTAX5 number
+  RECONCILEDFORAMOUNT number
+  RECONCILEDWITHAMOUNT number
+  TOTAL_PAYMENT_THIS_SALE number
+  PAYMENTNOTES text
+  CREATEDDATETIMEUTC timestamp_tz
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Payment allocations to sales details'
+}
+
+Table PAYMENT_DATA {
+  PMTREFNO number [pk, note: 'Payment reference number']
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  LOCATIONID number [ref: > LOCATIONS.LOCATIONID]
+  SALEID number [ref: > SALES.SALEID]
+  PAYMENTDATE date
+  ACTIVEDATE date [note: 'First day payment can be used for visits']
+  EXPDATE date [note: 'Day after last valid use date']
+  PRODUCTID float [ref: > PRODUCTS.PRODUCTID]
+  CATEGORY text
+  PRODUCT_DATACLEANSTATUS text
+  CATEGORY_DATACLEANSTATUS text
+  TYPEPURCH text
+  PAYMENTAMOUNT number
+  PAYMENTMETHOD number
+  CLIENTCREDIT number
+  RETURNED boolean
+  NUMCLASSES number [note: 'Original purchase count for lesson packages']
+  REMAINING number
+  REALREMAINING number [note: 'Remaining lessons (may be manually decremented)']
+  DURATION number
+  DURATIONUNIT text
+  SERIESTYPE text
+  SERVICETYPE text
+  SERVICETYPE_DATACLEANSTATUS text
+  CLASSID number
+  CLIENTID number [ref: > CLIENTS.CLIENTID]
+  CLIENTCONTRACTID number [ref: > CLIENTCONTRACTS.CLIENTCONTRACTID]
+  TERMINATIONCLIENTCONTRACTID number
+  SOLDBY number
+  SCHPERDAY number
+  VALUE number
+  PMTNOTES text
+  SOURCEID number
+  PRIORITY number
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: '''
+    Payment records for studio services. 
+    Useful for active membership payments.
+    ACTIVEDATE = first day payment can be used.
+    EXPDATE = day after last valid use date.
+    NUMCLASSES = original lesson package count.
+    REALREMAINING = remaining lessons (may be manually decremented).
+  '''
+}
+
+Table PAYMENT_TYPES {
+  PAYMENTTYPEID number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  PAYMENT_TYPE text
+  ACTIVE boolean
+  CASHEQ boolean
+  HAS_CASH_ORIGIN boolean
+  REAL_LIABILITY boolean
+  ALLOW0 boolean
+  ALLOWGT0 boolean
+  DELETED boolean
+  ALLOWREFUND boolean
+  HIDDEN boolean
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Payment type definitions (cash, credit, etc.)'
+}
+
+Table RETURNS {
+  RETURN_UID number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  LOCATIONID number [ref: > LOCATIONS.LOCATIONID]
+  ORIGINAL_SALEID number
+  ORIGINAL_SDID number
+  ORIGINAL_SALESTIME timestamp_tz
+  ORIGINAL_SALEDATE_OF_RECORD date
+  RETURNSALE_SALEID number
+  RETURNSALE_SDID number
+  RETURN_TIMESTAMP timestamp_tz
+  RETURN_SALEDATE_OF_RECORD date
+  DESCRIPTION text
+  PRODUCTID float [ref: > PRODUCTS.PRODUCTID]
+  CATEGORYID number [ref: > CATEGORIES.CATEGORYID]
+  CATEGORY text
+  PRODUCT_DATACLEANSTATUS text
+  CATEGORY_DATACLEANSTATUS text
+  SERIESTYPE text
+  SERVICETYPE text
+  COLORID number [ref: > COLORS.COLORID]
+  SIZEID number
+  PMTREFNO number [ref: > PAYMENT_DATA.PMTREFNO]
+  CLIENTID number [ref: > CLIENTS.CLIENTID]
+  RECCLIENTID number
+  CLIENTCONTRACTID number [ref: > CLIENTCONTRACTS.CLIENTCONTRACTID]
+  CONTRACTNAME text
+  NUMCLASSES number
+  REMAINING number
+  REALREMAINING number
+  EMPLOYEEID number
+  UNITPRICE number
+  QUANTITY number
+  RETURNAMOUNT number
+  TAX float
+  RETURNREASON text
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Product/service return transactions'
+}
+
+Table INVOICES {
+  ID number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  LOCATIONID number [ref: > LOCATIONS.LOCATIONID]
+  STUDIOSALEID number
+  DUEDATE timestamp_ntz
+  SALEDATE date
+  INVOICESTATUSID number
+  INVOICETERMSID number
+  INVOICEAMOUNT number
+  AMOUNTRECEIVED number
+  ISPOPULATED boolean
+  HASPOPULATIONERROR boolean
+  SHOWCLIENTTAXIDENTIFICATIONNUMBER boolean
+  LOCATIONTAXIDENTIFICATIONNUMBER text
+  NOTES text
+  INTEGRATIONPOINTORIGIN text
+  CREATEDDATETIMEUTC timestamp_tz
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Invoice records'
+}
+
+// ============================================================================
+// CREDIT CARD & EFT TABLES
+// ============================================================================
+
+Table CCNUMBERS {
+  CCNUMBER_ID number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  CLIENTID number [ref: > CLIENTS.CLIENTID]
+  BILLINGNAME text
+  ACHNAME text
+  ACHROUTINGNUM text
+  CCTYPE text
+  EXPMONTH text
+  EXPYEAR text
+  ISSAVINGSACCT boolean
+  BILLINGSTREETADDRESS text
+  BILLINGCITY text
+  BILLINGSTATE text
+  BILLINGZIP text
+  CREATEDDATETIMEUTC timestamp_tz
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Stored payment methods (tokenized)'
+}
+
+Table CCTRANS {
+  TRANSACTIONNUMBER number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  LOCATIONID number [ref: > LOCATIONS.LOCATIONID]
+  TRANS_TIMESTAMP timestamp_tz
+  AUTH_TIMESTAMP timestamp_tz
+  STATUS text
+  CCPROCESSOR text
+  SETTLED boolean
+  RESPONSESTR text
+  MERCHANTID text
+  AUTOBATCHED boolean
+  BATCHNUMBER number
+  CCAMT number
+  ORIGINALAUTHAMOUNT number
+  ISOCODE text
+  SALEID number [ref: > SALES.SALEID]
+  CLIENTID number [ref: > CLIENTS.CLIENTID]
+  CARDHOLDER text
+  CCTYPE text
+  CCLASTFOUR number
+  CCSWIPED boolean
+  ISSAVINGSACCT boolean
+  TICKETID number
+  TERMINALID text
+  PAYMENTTYPE number
+  CREATEDDATETIMEUTC timestamp_tz
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Credit card transaction records'
+}
+
+Table EFT {
+  EFTSCHEDULEID number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  LOCATIONID number
+  HIDDEN boolean
+  EFTGROUPID number
+  CLIENTID number [ref: > CLIENTS.CLIENTID]
+  RECCLIENTID number
+  CLIENTCONTRACTID number [ref: > CLIENTCONTRACTS.CLIENTCONTRACTID]
+  CONTRACTNAME text
+  SUSPENDID number
+  SUSPENDSTART date
+  SUSPENDEND date
+  STATUSMESSAGE text
+  SCHEDULEDATE date
+  SCHEDULEDDATETIME timestamp_tz
+  MODIFIEDDATETIME timestamp_tz
+  RUNDATETIME timestamp_tz
+  DISCOUNTPERCENT float
+  DISCOUNTAMOUNT number
+  AMOUNT number
+  PMTREFNO number
+  SALEID number
+  SDID number
+  PRODUCTID float
+  DESCRIPTION text
+  CATEGORYID number
+  CATEGORY text
+  PRODUCT_DATACLEANSTATUS text
+  CATEGORY_DATACLEANSTATUS text
+  CLASSID number
+  RUNATPOS boolean
+  RUNATONLINESTORE boolean
+  CCTRANSID number
+  ACCOUNTAUTOPAY boolean
+  ACTIVATIONDATEOFFSET number
+  PRORATEADDDAYSTODURATION number
+  SCHEDULEDBY number
+  MODIFIEDBY number
+  DELETED boolean
+  DELETEDBY number
+  DELETEDDATETIME timestamp_tz
+  SALESREPID number
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: '''
+    Electronic fund transfer schedules.
+    Used for autopay history and future schedules.
+    Base for Membership Pending Autopays and Autopay Declines reports.
+  '''
+}
+
+// ============================================================================
+// GIFT/DEBIT CARD TABLES
+// ============================================================================
+
+Table GIFTDEBITCARDS {
+  DEBITCARDID number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  LOCATIONID number
+  REGIONID number
+  CARDTRANSACTIONID number
+  DEBITCARDEXTID text
+  AMOUNT number
+  ISSUEDDATE date
+  LOCAL_SALEID number
+  ORIGINATING_SDID number
+  RETURNFOR_SALEID number
+  MISSING_PAYMENT boolean
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Gift/debit card master records'
+}
+
+Table GIFTDEBITCARDTRANSACTIONDATA {
+  CARDTRANSACTIONID number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  LOCATIONID number [ref: > LOCATIONS.LOCATIONID]
+  REGIONID number
+  DEBITCARDID number [ref: > GIFTDEBITCARDS.DEBITCARDID]
+  DEBITCARDEXTID text
+  TRANSACTIONTIMESTAMP date
+  AMOUNT number
+  LOCAL_SALEID number
+  PAYMENTID number [ref: > PAYMENTS.PAYMENTID]
+  RETURNFOR_SALEID number
+  ORIGINATING_STUDIOID number
+  ORIGINATING_SDID number
+  ISRETURN boolean
+  MISSING_PAYMENT boolean
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Gift/debit card transactions'
+}
+
+Table GIFTDEBITCARDTRANSACTIONDATA_STAGING {
+  CARDTRANSACTIONID number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  LOCATIONID number
+  REGIONID number
+  DEBITCARDID number
+  DEBITCARDEXTID text
+  TRANSACTIONTIMESTAMP date
+  AMOUNT number
+  LOCAL_SALEID number
+  ORIGINATING_STUDIOID number
+  ORIGINATING_SDID number
+  RETURN_STUDIOID number
+  RETURNFOR_SALEID number
+  RETURNAMOUNT number
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Staging table for gift card transactions'
+}
+
+
+
+// ============================================================================
+// STAFF & TRAINER TABLES
+// ============================================================================
+
+Table TRAINERS {
+  TRAINERID number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  LOCATIONID number [ref: > LOCATIONS.LOCATIONID]
+  FIRSTNAME text
+  LASTNAME text
+  CELLPHONE text
+  EMAIL text
+  TEACHER boolean
+  EMPLOYEE boolean
+  APPOINTMENTTRAINER boolean
+  RESERVATIONTRAINER boolean
+  ISSALESREP boolean
+  ISSYSTEM boolean
+  ISOWNER boolean
+  ACTIVE boolean
+  DELETED boolean
+  CREATIONDATETIME timestamp_tz
+  MODIFIEDDATETIME timestamp_tz
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Staff/trainer/employee records'
+}
+
+Table TRAINERSCHEDULES {
+  TRAINERSCHEDULE_ID number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  LOCATIONID number
+  AVAILNAME text
+  TRAINERID number [ref: > TRAINERS.TRAINERID]
+  FIRSTNAME text
+  LASTNAME text
+  APPOINTMENTTRAINER boolean
+  RESERVATIONTRAINER boolean
+  ISSALESREP boolean
+  ISSYSTEM boolean
+  TRAINER_ACTIVE boolean
+  TRAINER_DELETED boolean
+  STARTDATE date
+  ENDDATE date
+  STARTTIME time
+  ENDTIME time
+  DAYMON boolean
+  DAYTUE boolean
+  DAYWED boolean
+  DAYTHU boolean
+  DAYFRI boolean
+  DAYSAT boolean
+  DAYSUN boolean
+  CLASSID number
+  SHOWPUBLIC boolean
+  UNAVAILABLE boolean
+  SINGLEDAYAVAILABILITY boolean
+  CREATEDDATETIME timestamp_tz
+  UPDATEDDATETIME timestamp_tz
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Trainer availability schedules'
+}
+
+// ============================================================================
+// CLASS & SCHEDULING TABLES
+// ============================================================================
+
+Table CLASSDESCRIPTIONS {
+  CLASSDESCRIPTIONID number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  CLASSNAME text
+  CLASSDESCRIPTION text
+  CLASSPAYMENT number
+  VISITTYPEID number
+  ACTIVE boolean
+  CREATEDBY number
+  CREATIONDATETIME timestamp_tz
+  CLASSUPDATEDDATETIME timestamp_tz
+  LASTMODIFIEDBY number
+  LASTMODIFIEDTIMESTAMP timestamp_tz
+  CREATEDDATETIMEUTC timestamp_tz
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Class/service type definitions'
+}
+
+Table CLASSES {
+  CLASSID number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  LOCATIONID number [ref: > LOCATIONS.LOCATIONID]
+  SUBCLASSID number
+  DESCRIPTIONID number [ref: > CLASSDESCRIPTIONS.CLASSDESCRIPTIONID]
+  CLASSACTIVE boolean
+  CLASSTRAINERID number [ref: > TRAINERS.TRAINERID]
+  CLASSCAPACITY number
+  MAXCAPACITY number
+  CLASSDATESTART date
+  CLASSDATEEND date
+  CLASSSTARTTIME time
+  CLASSENDTIME time
+  DAYSUNDAY boolean
+  DAYMONDAY boolean
+  DAYTUESDAY boolean
+  DAYWEDNESDAY boolean
+  DAYTHURSDAY boolean
+  DAYFRIDAY boolean
+  DAYSATURDAY boolean
+  ENROLLEDRESERVED number
+  DROPINRESERVED number
+  WAITLISTSIZE number
+  FREE boolean
+  EMPLOYEEID number
+  CREATEDBY number
+  CREATIONDATETIME timestamp_tz
+  CLASSUPDATEDDATETIME timestamp_tz
+  LASTMODIFIEDBY number
+  LASTMODIFIEDATDATETIME timestamp_tz
+  CREATEDDATETIMEUTC timestamp_tz
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Class schedule definitions'
+}
+
+Table TYPEGROUPS {
+  TYPEGROUPID number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  TYPEGROUP text
+  MEMBERSONLY boolean
+  ACTIVE boolean
+  DATACLEANSTATUS text
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Service type group definitions'
+}
+
+Table VISITTYPES {
+  TYPEID number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  TYPENAME text
+  TYPEGROUPID number [ref: > TYPEGROUPS.TYPEGROUPID]
+  TYPEGROUP text
+  TYPEGROUP_DATACLEANSTATUS text
+  NUMDEDUCTED number
+  DEFAULTTIMELENGTH number
+  APPTCAPACITY number
+  ADDON boolean
+  SHOWINCONSMODE boolean
+  RESOURCEREQUIRED boolean
+  ACTIVE boolean
+  DELETED boolean
+  CREATEDBY number
+  CREATIONDATETIME timestamp_tz
+  LASTMODIFIEDBY number
+  MODIFIEDDATETIME timestamp_tz
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Visit/appointment type definitions'
+}
+
+Table RESOURCES {
+  RESOURCEID number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  LOCATIONID number
+  RESOURCENAME text
+  ACTIVE boolean
+  RESV boolean
+  APPT boolean
+  ENROLL boolean
+  CREATIONDATETIME timestamp_tz
+  CREATEDDATETIMEUTC timestamp_tz
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Bookable resources (rooms, equipment)'
+}
+
+Table RESOURCESCHEDULES {
+  RESOURCESCHEDULEID number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  DISPLAYNAME text
+  RESOURCEID number [ref: > RESOURCES.RESOURCEID]
+  REFSCHEDULETYPE text
+  REFAPPT number
+  REFCLASS number
+  REFVISIT number
+  STARTDATE date
+  ENDDATE date
+  STARTTIME time
+  ENDTIME date
+  DAYSUNDAY boolean
+  DAYMONDAY boolean
+  DAYTUESDAY boolean
+  DAYWEDNESDAY boolean
+  DAYTHURSDAY boolean
+  DAYFRIDAY boolean
+  DAYSATURDAY boolean
+  WHOLEDAY boolean
+  CREATIONDATETIME timestamp_tz
+  CREATEDDATETIMEUTC timestamp_tz
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Resource availability schedules'
+}
+
+// ============================================================================
+// VISIT & RESERVATION TABLES
+// ============================================================================
+
+Table VISIT_DATA {
+  VISITREFNO number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  LOCATIONID number [ref: > LOCATIONS.LOCATIONID]
+  VDGROUPID number
+  TYPETAKEN text
+  PMTREFNO number [ref: > PAYMENT_DATA.PMTREFNO]
+  TYPEPURCH text
+  PAYMENTDATE date
+  NUMCLASSES number
+  PAYMENTAMOUNT number
+  NUMDEDUCTED number
+  CLIENTID number [ref: > CLIENTS.CLIENTID]
+  CLASSDATE date
+  STARTTIME time
+  ENDTIME time
+  PENDING boolean
+  CANCELLED boolean
+  MISSED boolean
+  PAYMENT_RETURNED boolean
+  TRAINERID number [ref: > TRAINERS.TRAINERID]
+  VISITTYPEID number [ref: > VISITTYPES.TYPEID]
+  TYPENAME text
+  TYPEGROUPID number [ref: > TYPEGROUPS.TYPEGROUPID]
+  TYPEGROUP text
+  TYPEGROUP_DATACLEANSTATUS text
+  CLASSTYPE text
+  CLASSID number [ref: > CLASSES.CLASSID]
+  RESOURCETYPEID number
+  EMPLOYEEID number
+  RESERVEDBY number
+  RESERVEDFOR text
+  BOOKEDBY number
+  REASSIGNEDBY number
+  MAKEUPVISITREFNO number
+  VISITNOTES text
+  WEBSCHEDULER boolean
+  SOURCEID number
+  APICLIENTSIGNEDIN text
+  RESTSOURCE text
+  CREATIONDATETIME timestamp_tz
+  MODIFIEDDATETIME timestamp_tz
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Client visit/attendance records'
+}
+
+Table RESERVATIONS {
+  VISITREFNO number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  LOCATIONID number [ref: > LOCATIONS.LOCATIONID]
+  VISITDATA_ID number [ref: > VISIT_DATA.VISITREFNO]
+  ADDON_FOR_VISITREFNO number
+  CLIENTID number [ref: > CLIENTS.CLIENTID]
+  CREATIONDATETIME timestamp_tz
+  MODIFIEDDATETIME timestamp_tz
+  CONFIRMEDDATETIME timestamp_tz
+  CLASSDATE date
+  CLASSTIME time
+  MYSTARTTIME time
+  MYENDTIME time
+  PENDING boolean
+  WAITLIST boolean
+  BOOKED boolean
+  CONFIRMED boolean
+  ARRIVED boolean
+  CANCELLED boolean
+  MISSED boolean
+  TYPETAKEN text
+  PMTREFNO number [ref: > PAYMENT_DATA.PMTREFNO]
+  PAYMENTDATE date
+  PAYMENTAMOUNT number
+  PAYMENT_RETURNED boolean
+  NUMDEDUCTED number
+  BOOKEDBY number
+  RESERVEDBY number
+  RESERVEDFOR text
+  WEBSCHEDULER boolean
+  SOURCEID number
+  RESTSOURCE text
+  CONFIRMEDBY number
+  EMPLOYEEID number
+  TRAINERID number [ref: > TRAINERS.TRAINERID]
+  TRNSCHEDID number
+  VISITTYPEID number [ref: > VISITTYPES.TYPEID]
+  VISITTYPE text
+  TYPEGROUPID number [ref: > TYPEGROUPS.TYPEGROUPID]
+  TYPEGROUP text
+  TYPEGROUP_DATACLEANSTATUS text
+  CLASSTYPE text
+  APPTGROUPID number
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Appointment/class reservations'
+}
+
+Table WEBAPI_APPOINTMENTS {
+  APPOINTMENTID number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  STATUS text
+  ISCONFIRMED boolean
+  HASARRIVED boolean
+  LOCATIONID number [ref: > LOCATIONS.LOCATIONID]
+  CLIENTID number [ref: > CLIENTS.CLIENTID]
+  CLIENTFIRSTNAME text
+  CLIENTLASTNAME text
+  CLIENTEMAIL text
+  CLIENTPHONE text
+  STAFFID number [ref: > TRAINERS.TRAINERID]
+  STAFFFIRSTNAME text
+  STAFFLASTNAME text
+  STARTDATETIME_UTC timestamp_tz
+  ENDDATETIME_UTC timestamp_tz
+  DURATIONMINUTES number
+  RESOURCE_ID number
+  RESOURCE_NAME text
+  NOTES text
+  SESSIONTYPEID number
+  APPOINTMENTNAME text
+  SERVICE text
+  MARKET text
+  LOCATION text
+  LOCATION_EMAIL text
+  TIMEZONEOFFSET number
+  ISFRANCHISE boolean
+  TRAINEREMAIL text
+  TRAINERPHONE text
+  EVENTINSTANCEORIGINATIONDATETIME timestamp_tz
+  UPDATEDDATETIME_UTC timestamp_tz
+  INCLUDEDAPPTS variant
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Appointments from MindBody Web API'
+}
+
+// ============================================================================
+// BACKUP/DELETED RECORD TABLES
+// ============================================================================
+
+Table BAKDELAPPTS {
+  VISITREFNO number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  DELDATETIME timestamp_tz [pk]
+  LOCATIONID number
+  CLIENTID number
+  CLASSDATE date
+  PMTREFNO number
+  TYPETAKEN text
+  VISITTYPE text
+  TYPEGROUPID number
+  CLASSID number
+  NUMDEDUCTED number
+  CANCELLED boolean
+  MISSED boolean
+  CONFIRMED boolean
+  CONFIRMED2 boolean
+  EARLYCANCEL boolean
+  TRNSCHEDID number
+  TRAINERID number
+  CLASSTIME time
+  MYSTARTTIME time
+  MYENDTIME time
+  WEBSCHEDULER boolean
+  REQUESTDATETIME timestamp_tz
+  EMPID number
+  DELEMPID number
+  DELETEDBY text
+  CREATIONDATETIME timestamp_tz
+  BOOKEDBY number
+  CREATEDDATETIMEUTC timestamp_tz
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Backup of deleted appointments'
+}
+
+Table BAKDELVISITS {
+  VISITREFNO number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  DELDATETIME timestamp_tz [pk]
+  LOCATIONID number
+  CLIENTID number
+  CLASSDATE date
+  PMTREFNO number
+  TYPETAKEN text
+  VISITTYPE number
+  TYPEGROUPID number
+  CLASSID number
+  NUMDEDUCTED number
+  CANCELLED boolean
+  MISSED boolean
+  EARLYCANCEL boolean
+  TRAINERID number
+  CLASSTIME time
+  MYSTARTTIME time
+  MYENDTIME time
+  WEBSCHEDULER boolean
+  REQUESTDATETIME timestamp_tz
+  EMPID number
+  DELEMPID number
+  DELETEDBY text
+  BOOKEDBY number
+  CREATEDDATETIMEUTC timestamp_tz
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Backup of deleted visits'
+}
+
+Table BAKMANUALDELPAYMENTDATA {
+  PMTREFNO number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  DELDATETIME timestamp_tz [pk]
+  CLIENTID number
+  PRODUCTID number
+  PAYMENTDATE date
+  ACTIVEDATE date
+  TYPEPURCH text
+  PAYMENTAMOUNT number
+  PAYMENTMETHOD number
+  PMTNOTES text
+  EXPDATE date
+  REMAINING number
+  LOCATIONID number
+  SOLDBY number
+  DURATION number
+  NUMCLASSES number
+  TYPEID number
+  TYPEGROUPID number
+  RETURNED boolean
+  SALEID number
+  CLIENTCREDIT number
+  CLASSID number
+  VOIDEDBY number
+  DELNOTES text
+  GIFTCARDEXTID text
+  CREATEDDATETIMEUTC timestamp_tz
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Backup of manually deleted payment data'
+}
+
+Table BAKMANUALDELSALES {
+  SALEID number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  DELTIME time [pk]
+  LOCATIONID number
+  SALEDATE date
+  DELDATE date
+  CLIENTID number
+  EMPLOYEEID number
+  PAYMENTMETHOD number
+  PAYMENTAMOUNT number
+  TAX number
+  VOIDEDBY number
+  CARDHOLDER text
+  RESTSOURCE text
+  SALECREATEDDATETIMEUTC timestamp_tz
+  SALEMODIFIEDDATETIMEUTC timestamp_tz
+  CREATEDDATETIMEUTC timestamp_tz
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Backup of manually deleted sales'
+}
+
+Table BAKMANUALDELSALESDETAILS {
+  SDID number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  DELDATE date [pk]
+  DELTIME time [pk]
+  LOCATIONID number
+  SALEID number
+  PMTREFNO number
+  PRODUCTID float
+  CATEGORYID number
+  SCATEGORY2ID number
+  SUBCATEGORY text
+  COLORID number
+  SIZEID number
+  QUANTITY number
+  GROSSUNITPRICE number
+  DISCOUNT float
+  DISCAMT number
+  UNITPRICE number
+  SDPAYMENTAMT number
+  ITEMTAX1 number
+  ITEMTAX2 number
+  ITEMTAX3 number
+  ITEMTAX4 number
+  ITEMTAX5 number
+  PROMOTIONID number
+  SALECREATEDDATETIMEUTC timestamp_tz
+  SALEMODIFIEDDATETIMEUTC timestamp_tz
+  CREATEDDATETIMEUTC timestamp_tz
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Backup of manually deleted sales details'
+}
+
+Table BAKPAYMENTS {
+  PAYMENTID number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  DELDATETIME timestamp_tz [pk]
+  SALEID number
+  PAYMENTMETHOD number
+  CCTRANSID number
+  DEBITCARDID number
+  PAYMENTAMOUNT number
+  PAYMENTTAX number
+  CREATEDDATETIMEUTC timestamp_tz
+  MODIFIEDDATETIMEUTC timestamp_tz
+  VOIDCREATEDDATETIMEUTC timestamp_tz
+  VOIDMODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Backup of deleted payments'
+}
+
+Table BAKSDPAYMENTS {
+  SDPAYMENTID number [pk]
+  STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
+  DELDATETIME timestamp_tz [pk]
+  SDID number
+  PAYMENTID number
+  DISCAMT number
+  SDPAYMENTAMOUNT number
+  ITEMTAX1 number
+  ITEMTAX2 number
+  ITEMTAX3 number
+  ITEMTAX4 number
+  ITEMTAX5 number
+  CREATEDDATETIMEUTC timestamp_tz
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Backup of deleted SD payments'
+}
+
+// ============================================================================
+// INPUT/STAGING TABLES
+// ============================================================================
+
+Table INPUT_CATEGORIES {
+  CATEGORYID number [pk, not null]
+  STUDIOID number [pk, not null, ref: > STUDIOS.STUDIOID]
+  CATEGORYNAME text [not null]
+  ACTIVE boolean [not null]
+  SERVICE boolean [not null]
+  ISPRIMARY boolean [not null]
+  ISSECONDARY boolean [not null]
+  DELETED boolean [not null]
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Category input/override table'
+}
+
+Table INPUT_PRODUCTS {
+  PRODUCTID number [pk, not null]
+  STUDIOID number [pk, not null, ref: > STUDIOS.STUDIOID]
+  DESCRIPTION text [not null]
+  CATEGORYID number [not null]
+  CATEGORY2ID number
+  SUBCATEGORYID number
+  TYPEGROUPID number [not null]
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Product input/override table'
+}
+
+Table INPUT_TRAINERS {
+  TRAINERID number [pk, not null]
+  STUDIOID number [pk, not null, ref: > STUDIOS.STUDIOID]
+  CONFIRMATION_EMAIL_OPTOUT boolean [not null]
+  
+  Note: 'Trainer input/override table'
+}
+
+Table INPUT_TYPEGROUPS {
+  TYPEGROUPID number [pk, not null]
+  STUDIOID number [pk, not null, ref: > STUDIOS.STUDIOID]
+  TYPEGROUP text [not null]
+  ACTIVE boolean [not null]
+  MODIFIEDDATET                                                                   
