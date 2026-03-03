@@ -1,6 +1,10 @@
 // DBML Schema for PROD_ENHANCED.MINDBODY
 // MindBody business management data - fitness/wellness studio operations
 // Generated from Snowflake schema
+// Data volume as of 2026-03-02: PROD_ENHANCED.MINDBODY — 30,894,867 rows, 1,250.26 MB
+// Avg daily growth (7-day, 17 of 71 tables): ~38,608 rows/day
+// Columns used: CREATIONDATETIME (RESERVATIONS, VISIT_DATA), EVENTINSTANCEORIGINATIONDATETIME (WEBAPI_APPOINTMENTS),
+//   PAYMENTDATE (PAYMENT_DATA), RUNDATETIME (EFT), CREATEDDATETIMEUTC (all others)
 
 Project prod_enhanced_mindbody {
   database_type: 'Snowflake'

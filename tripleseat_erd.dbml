@@ -1,6 +1,9 @@
 // ERD for prod_enhanced.tripleseat
 // Generated from Snowflake metadata
 // Render at: https://dbdiagram.io
+// Data volume as of 2026-03-02: PROD_ENHANCED.TRIPLESEAT — 2,049,476 rows, 38.78 MB
+// Avg daily growth (7-day, EVENTS + LEADS + CONTACTS + ACCOUNTS): ~200 rows/day
+// Note: EVENTS_REVENUE_DAILY_LEDGER, EVENTS_STATUS_CHANGES, EVENTS_CATEGORY_TOTALS excluded (no created timestamp)
 
 Project tripleseat {
   database_type: 'Snowflake'

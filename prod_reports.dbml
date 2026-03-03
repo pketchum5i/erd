@@ -1,0 +1,290 @@
+// DBML Schema for PROD_REPORTS
+// Reporting layer views and tables — aggregated, business-ready data
+// Generated from Snowflake schema
+
+Project prod_reports {
+  database_type: 'Snowflake'
+  Note: '''
+    Reporting layer for Five Iron Golf analytics.
+    Contains aggregated and joined views across membership, lessons,
+    utilization, events, and business reference data.
+  '''
+}
+
+// ============================================================================
+// BUSINESS SCHEMA
+// ============================================================================
+
+Table business.locations {
+  LOCATIONNAME text [note: 'Display name of the location']
+  SIMULATORS number [note: 'Number of simulator bays at this location']
+  TIMEZONEOFFSET number [note: 'UTC offset in hours']
+  STUDIOID number [note: 'MindBody studio ID']
+  LOCATIONID number [note: 'MindBody location ID']
+  LANES number [note: 'Number of hitting lanes']
+  OPEN_DATE text [note: 'Date the location opened (text format)']
+  TRIPLESEAT_LOCATIONID text [note: 'Tripleseat location identifier']
+  TIMEZONE text [note: 'IANA timezone string']
+  SQUARE_ID text [note: 'Square POS location identifier']
+  PAYLOCITY_LOCATION text [note: 'Paylocity payroll location identifier']
+  ISFRANCHISE boolean [note: 'True if this is a franchise location']
+  CANONICAL_NAME text [note: 'Standardized location name for reporting']
+  FRANCHISE_COMP_STORE text [note: 'Comparable store group for franchise analysis']
+  CITY text [note: 'City where the location is situated']
+  ENTITY text [note: 'Legal entity name']
+
+  Note: 'Master reference table for all Five Iron Golf locations. Joins MindBody, Tripleseat, Square, and Paylocity identifiers.'
+}
+
+// ============================================================================
+// MEMBERSHIP SCHEMA
+// ============================================================================
+
+Table membership.all_contracts {
+  STUDIOID number [note: 'MindBody studio ID']
+  SALELOCATIONID number [note: 'Location where the contract was sold']
+  CLIENTCONTRACTID number [note: 'Unique identifier for the client contract instance']
+  CLIENTID number [note: 'MindBody client ID']
+  RECCLIENTID number [note: 'Recurring client ID (may differ from CLIENTID in some systems)']
+  CONTRACTID number [note: 'Template contract definition ID']
+  CONTRACTNAME text [note: 'Name of the membership/contract product']
+  CLIENTCONTRACTSALEID number [note: 'Sale transaction ID for the contract purchase']
+  AGREEMENTDATE date [note: 'Date the contract agreement was signed']
+  STARTDATE date [note: 'Contract billing/service start date']
+  ENDDATE date [note: 'Contract scheduled end date']
+  LASTACTIVEDATE date [note: 'Last date the contract was considered active']
+  CONTRACTSALE_PAYMENT number [note: 'Initial payment collected at sale']
+  FIRSTAUTOPAY number [note: 'Amount of the first autopay charge']
+  LASTAUTOPAY number [note: 'Amount of the last autopay charge']
+  NORMALAUTOPAY number [note: 'Standard recurring autopay amount']
+  FIRSTAUTOPAY_DISCOUNT number [note: 'Discount applied to first autopay']
+  LASTAUTOPAY_DISCOUNT number [note: 'Discount applied to last autopay']
+  CONTRACTSTANDARD_FIRSTAUTOPAY number [note: 'Standard (non-discounted) first autopay amount']
+  CONTRACTSTANDARD_LASTAUTOPAY number [note: 'Standard (non-discounted) last autopay amount']
+  CONTRACTSTANDARD_NORMALAUTOPAY number [note: 'Standard (non-discounted) recurring autopay amount']
+  FIRSTAUTOPAY_FREE boolean [note: 'True if the first autopay period is free']
+  LASTAUTOPAY_FREE boolean [note: 'True if the last autopay period is free']
+  PRORATEDDATE date [note: 'Date through which proration was calculated']
+  ISMONTHTOMONTH boolean [note: 'True if the contract is month-to-month']
+  RENEWTOMONTHTOMONTH boolean [note: 'True if the contract auto-renews to month-to-month']
+  AUTORENEWING boolean [note: 'True if the contract automatically renews']
+  AUTORENEWCLIENTCONTRACTID number [note: 'Client contract ID of the renewal contract']
+  TERMINATEDBY number [note: 'Employee ID who processed the termination']
+  TERMINATIONTIMESTAMP timestamp_tz [note: 'Timestamp when termination was recorded']
+  TERMINATIONDATE date [note: 'Effective date of termination']
+  TERMINATIONCODE number [note: 'Coded reason for termination']
+  TERMINATIONNOTES text [note: 'Free-text notes on termination reason']
+  IAGREED boolean [note: 'True if client electronically agreed to contract terms']
+  IAGREEDATETIME timestamp_tz [note: 'Timestamp of electronic agreement']
+  AGREEDINBIZMODEEMPID number [note: 'Employee ID who recorded in-person agreement']
+  SIGNATUREFILEEXISTS boolean [note: 'True if a signature file is on record']
+  CONTRACTTEXT text [note: 'Full contract text']
+  NOTES text [note: 'General notes on the contract']
+  REJECTIONCOUNT number [note: 'Number of times autopay was rejected/failed']
+  ACTIVATIONOFFSETDAYS number [note: 'Days after sale before contract activates']
+  FREQUENCY number [note: 'Billing frequency (e.g., monthly = 1)']
+  TOTALNUMBEROFPAYMENTS number [note: 'Total number of payments in the contract term']
+  DELETED boolean [note: 'Soft-delete flag']
+  MODIFIEDDATETIMEUTC timestamp_tz [note: 'Last modified timestamp (UTC)']
+  CURRENTSTATUS text [note: 'Current contract status (Active, Terminated, Suspended, etc.)']
+  CUMULATIVE_SUSPENDED_DAYS number [note: 'Total number of days the contract has been suspended']
+  CUMULATIVE_DAYS number [note: 'Total elapsed days since contract start']
+
+  Note: 'All membership contracts across all studios. Includes pricing, billing schedule, termination details, and derived status fields.'
+}
+
+// ============================================================================
+// LESSONS SCHEMA
+// ============================================================================
+
+Table lessons.total_lesson_hours {
+  CHECKOUT_STATUS text [note: 'Visit checkout status (e.g., Checked Out, No Show)']
+  STUDIOID number [note: 'MindBody studio ID']
+  CLIENTID number [note: 'MindBody client ID']
+  CLIENT_NAME text [note: 'Full name of the client']
+  CLIENT_EMAIL text [note: 'Email address of the client']
+  CLIENT_PHONE text [note: 'Phone number of the client']
+  VISITREFNO number [note: 'Unique visit reference number']
+  TRAINERID number [note: 'MindBody staff/trainer ID']
+  TRAINER_NAME text [note: 'Full name of the coach/trainer']
+  CLASSDATE date [note: 'Date the lesson took place']
+  TYPETAKEN text [note: 'Specific lesson type (e.g., 30-min private, group)']
+  LOCATIONID number [note: 'MindBody location ID']
+  LOCATIONNAME text [note: 'Display name of the location']
+  TOTAL_TIME number [note: 'Duration of the lesson in hours']
+  OPEN_DATE text [note: 'Date the location opened (for filtering pre-open data)']
+  FREE_LESSONS text [note: 'Flag indicating whether this was a complimentary lesson']
+  ISFRANCHISE boolean [note: 'True if the location is a franchise']
+  TYPEGROUP text [note: 'Grouped lesson type category for reporting']
+  CREATED_DATETIME timestamp_tz [note: 'Timestamp when the visit record was created']
+  COACH_EMAIL text [note: 'Email address of the coach/trainer']
+  UNIT_PRICE number [note: 'Price per unit/hour for this lesson type']
+  DISCOUNT_PCT number [note: 'Discount percentage applied']
+  PAYMENT_METHOD text [note: 'How the lesson was paid (e.g., package, card)']
+  PROMO_CODE text [note: 'Promotional code used, if any']
+  RETURNED boolean [note: 'True if the sale/visit was returned/refunded']
+
+  Note: 'Grain is one row per lesson visit. Includes coach, client, timing, pricing, and payment details for all lesson types.'
+}
+
+// ============================================================================
+// UTILIZATION SCHEMA
+// ============================================================================
+
+Table utilization.utilization_by_hours_gap_filled {
+  DATE_GENERATED timestamp_ntz [note: 'Timestamp when this row was generated']
+  STUDIOID number [note: 'MindBody studio ID']
+  LOCATIONID number [note: 'MindBody location ID']
+  LOCATIONNAME text [note: 'Display name of the location']
+  DOW text [note: 'Day of week label (e.g., Monday)']
+  SIMULATORS number [note: 'Number of simulator bays at this location']
+  LANES number [note: 'Number of hitting lanes at this location']
+  TOTAL_UTILIZATION number [note: 'Total utilized hours across all bays/lanes']
+  UTILIZATION_PCT number [note: 'Utilization as a percentage of available capacity']
+  SIM_RENTALS number [note: 'Hours used for simulator bay rentals']
+  MEMBER number [note: 'Hours used by members']
+  WALK_INS number [note: 'Hours used by walk-in customers']
+  LANE_RENTALS number [note: 'Hours used for lane rental bookings']
+  LESSONS number [note: 'Hours used for lessons']
+  LEAGUES number [note: 'Hours used for league play']
+  EVENTS number [note: 'Hours used for private events']
+  AVG_REVENUE_PER_HOUR float [note: 'Average total revenue per utilized hour']
+  RENTAL_REVENUE_PER_HOUR float [note: 'Revenue per hour from rentals specifically']
+  EVENTS_REVENUE_PER_HOUR float [note: 'Revenue per hour from events specifically']
+  EXTENSION_OPPORTUNITIES number [note: 'Number of bookings eligible for time extension']
+  EXTENSIONS number [note: 'Number of extensions actually sold']
+  TOTAL_EXTENSION_REVENUE number [note: 'Total revenue from extensions']
+  AVG_EXTENSION_REVENUE number [note: 'Average revenue per extension sold']
+  ISFRANCHISE boolean [note: 'True if the location is a franchise']
+  FRANCHISE_COMP_STORE text [note: 'Comparable store grouping for franchise analysis']
+
+  Note: 'Hourly utilization data with gap-filling (zeroes inserted for hours with no activity). Covers all booking types and revenue per hour. Grain is one row per location per hour-of-day per day-of-week.'
+}
+
+// ============================================================================
+// EVENTS SCHEMA
+// ============================================================================
+
+Table events.events_and_leads {
+  LEAD_ID array [note: 'Array of Tripleseat lead IDs associated with this event']
+  EVENT_ID number [note: 'Tripleseat event ID']
+  EVENT_NAME text [note: 'Name of the event']
+  EVENT_STATUS text [note: 'Current event status (e.g., Definite, Tentative, Lost)']
+  LOCATION_ID number [note: 'Tripleseat location ID']
+  LOCATION_NAME text [note: 'Display name of the location']
+  LEAD_OWNER text [note: 'Name of the sales rep who owns the lead']
+  OWNED_BY number [note: 'Staff ID of the lead owner']
+  LEAD_CLIENT_NAME text [note: 'Name of the client/contact on the lead']
+  BUSINESS_ENTITY text [note: 'Five Iron legal entity associated with the location']
+  COMPANY text [note: 'Client company name']
+  PHONE_NUMBER text [note: 'Client phone number']
+  EMAIL_ADDRESS text [note: 'Client email address']
+  ADDITIONAL_INFORMATION text [note: 'Free-text additional notes from the lead']
+  LEAD_CREATED_AT timestamp_tz [note: 'Timestamp when the lead was created']
+  LEAD_TURNED_DOWN_AT timestamp_tz [note: 'Timestamp when the lead was declined']
+  LEAD_TURNED_DOWN_REASON text [note: 'Reason the lead was turned down']
+  LEAD_EVENT_STYLE text [note: 'Style of event requested on the lead']
+  LEAD_DESCRIPTION text [note: 'Description of the event from the lead inquiry']
+  LEAD_TYPE text [note: 'Type classification of the lead']
+  LEAD_BUDGET text [note: 'Client budget range']
+  LEAD_FLEXIBILITY text [note: 'Client flexibility on date/time']
+  LEAD_GUEST_COUNT number [note: 'Expected guest count from the lead']
+  LEAD_EVENT_DATE date [note: 'Requested event date from the lead']
+  LEAD_START_TIME time [note: 'Requested start time from the lead']
+  LEAD_END_TIME time [note: 'Requested end time from the lead']
+  EVENT_DESCRIPTION text [note: 'Description on the confirmed event']
+  EVENTS_EVENT_TYPE text [note: 'Event type classification on the event record']
+  GUARANTEED_GUEST_COUNT number [note: 'Guaranteed guest count for billing purposes']
+  EVENTS_GUEST_COUNT number [note: 'Actual or expected guest count on the event']
+  LOST_REASON text [note: 'Reason the event was lost']
+  EVENT_DATE date [note: 'Date of the event']
+  EVENT_START timestamp_tz [note: 'Event start datetime']
+  EVENT_END timestamp_tz [note: 'Event end datetime']
+  CREATED_BY number [note: 'Staff ID who created the event record']
+  UPDATED_BY number [note: 'Staff ID who last updated the event record']
+  LEAD_CONVERTED_AT timestamp_tz [note: 'Timestamp when the lead was converted to an event']
+  UPDATED_AT timestamp_ntz [note: 'Timestamp of last update']
+  DELETED_AT timestamp_ntz [note: 'Soft-delete timestamp']
+  FOOD_AND_BEVERAGE_MIN number [note: 'Minimum F&B spend required']
+  PRICE_PER_PERSON number [note: 'Per-person pricing']
+  DEPOSIT_AMOUNT number [note: 'Deposit collected']
+  RENTAL_FEE number [note: 'Space rental fee']
+  NET_TRUE_TOTAL number [note: 'Net total after all adjustments']
+  NET_GRAND_TOTAL number [note: 'Net grand total']
+  NET_ACTUAL number [note: 'Actual net revenue collected']
+  NET_REVENUE number [note: 'Net revenue for reporting']
+  AMOUNT_DUE number [note: 'Balance still owed']
+  DISCOUNTS number [note: 'Total discounts applied']
+  ADMIN_FEE number [note: 'Administrative fee']
+  TAXES number [note: 'Total tax amount']
+  GRATUITY number [note: 'Gratuity amount']
+  FOOD_AMOUNT number [note: 'Revenue from food items']
+  BEVERAGE_AMOUNT number [note: 'Revenue from beverage items']
+  ENHANCEMENTS_AMOUNT number [note: 'Revenue from event enhancements']
+  MISC_AMOUNT number [note: 'Miscellaneous revenue']
+  EXTENSIONS_SPACE_RENTAL_AMOUNT number [note: 'Space rental revenue from time extensions']
+  OTHER_AMOUNT number [note: 'Other revenue']
+  SPACE_RENTAL_AMOUNT number [note: 'Base space rental revenue']
+  AV_AMOUNT number [note: 'Audio/visual equipment revenue']
+  EXTENSIONS_BEVERAGE_AMOUNT number [note: 'Beverage revenue from time extensions']
+  EXTENSIONS_FOOD_AMOUNT number [note: 'Food revenue from time extensions']
+  CLUB_FITTINGS_AMOUNT number [note: 'Revenue from club fittings']
+  WEEK_OF_STARTING_REVENUE number [note: 'Revenue recognized in the week the event starts']
+  ACTUAL_AMOUNT number [note: 'Total actual amount collected']
+  GRAND_TOTAL number [note: 'Grand total before adjustments']
+  LEDGER_NET_REVENUE number [note: 'Net revenue as recorded in the ledger']
+  AS_OF_DATE date [note: 'Date this revenue snapshot was taken']
+  OPEN_DATE text [note: 'Location open date (for filtering pre-open data)']
+  EVENT_CATEGORY text [note: 'High-level event category']
+  EVENT_INDUSTRY text [note: 'Industry/sector of the client company']
+  GUEST_COUNT_ACTUAL text [note: 'Actual guest count post-event']
+  REPEAT_EVENT text [note: 'Indicates if this client has held events before']
+  CONFIRMED_DATE timestamp_ntz [note: 'Date/time the event was confirmed']
+  CREATED_DATE date [note: 'Date the event record was created']
+  OVERALL_EXPERIENCE number [note: 'Survey score: overall experience (1-10)']
+  ESM_PLANNING number [note: 'Survey score: event sales manager planning (1-10)']
+  QUALITY_BEVERAGE number [note: 'Survey score: beverage quality (1-10)']
+  QUALITY_FOOD number [note: 'Survey score: food quality (1-10)']
+  EP_SERVICE number [note: 'Survey score: event planner service (1-10)']
+  NPS number [note: 'Net Promoter Score (-100 to 100)']
+  COMMENTS text [note: 'Open-text survey comments']
+  EVENT_OWNER text [note: 'Name of the event manager/planner assigned']
+  ISFRANCHISE boolean [note: 'True if this is a franchise location']
+  MBO_STUDIOID number [note: 'MindBody studio ID for cross-system joins']
+  MBO_LOCATIONID number [note: 'MindBody location ID for cross-system joins']
+  ENTITY text [note: 'Legal entity name']
+  COMP_STORE text [note: 'Comparable store group for cohort analysis']
+
+  Note: 'Unified view joining Tripleseat leads and events with revenue detail and post-event survey scores. One row per event (with lead data denormalized).'
+}
+
+Table events.survey_responses {
+  EVENT_ID number [pk, note: 'Tripleseat event ID — primary key']
+  CLIENT_EMAIL text [note: 'Email of the client who completed the survey']
+  LOCATION_NAME text [note: 'Name of the location where the event occurred']
+  EVENT_DATE date [note: 'Date of the event']
+  TRIPLESEAT_CONTACT_EMAIL text [note: 'Email of the Five Iron contact in Tripleseat']
+  OVERALL_EXPERIENCE number [note: 'Survey score: overall experience (1-10)']
+  ESM_PLANNING number [note: 'Survey score: event sales manager planning (1-10)']
+  QUALITY_FOOD number [note: 'Survey score: food quality (1-10)']
+  QUALITY_BEVERAGE number [note: 'Survey score: beverage quality (1-10)']
+  EP_SERVICE number [note: 'Survey score: event planner service (1-10)']
+  NPS number [note: 'Net Promoter Score']
+  COMMENTS text [note: 'Open-text survey feedback']
+  COMPLETIONDATE date [note: 'Date the survey was completed']
+
+  Note: 'Post-event survey responses. One row per event. Links to events_and_leads via EVENT_ID.'
+}
+
+// ============================================================================
+// RELATIONSHIPS
+// ============================================================================
+
+Ref: events.survey_responses.EVENT_ID - events.events_and_leads.EVENT_ID
+Ref: membership.all_contracts.STUDIOID > business.locations.STUDIOID
+Ref: lessons.total_lesson_hours.STUDIOID > business.locations.STUDIOID
+Ref: lessons.total_lesson_hours.LOCATIONID > business.locations.LOCATIONID
+Ref: utilization.utilization_by_hours_gap_filled.STUDIOID > business.locations.STUDIOID
+Ref: utilization.utilization_by_hours_gap_filled.LOCATIONID > business.locations.LOCATIONID
+Ref: events.events_and_leads.MBO_STUDIOID > business.locations.STUDIOID
+Ref: events.events_and_leads.MBO_LOCATIONID > business.locations.LOCATIONID

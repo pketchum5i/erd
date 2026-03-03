@@ -1,0 +1,84 @@
+// DBML Schema for PROD_INTEGRATION
+// Integration layer — unified, cross-system sales and transaction data
+// Generated from Snowflake schema
+
+Project prod_integration {
+  database_type: 'Snowflake'
+  Note: '''
+    Integration layer combining POS and booking system data across
+    MindBody and other sources. Provides a single grain of truth for
+    line-item sales transactions across all Five Iron locations.
+  '''
+}
+
+// ============================================================================
+// SALES SCHEMA
+// ============================================================================
+
+Table sales.line_item_sales {
+  SALEDATE date [note: 'Date the sale was transacted']
+  SALETIME time [note: 'Time of the sale transaction']
+  SOURCE text [note: 'Source system (e.g., MindBody, Square)']
+  SOURCE_REGION_ID number [note: 'Region ID from the source system']
+  SOURCE_LOCATION_ID number [note: 'Location ID from the source system']
+  SOURCE_CUSTOMER_ID number [note: 'Customer/client ID from the source system']
+  MARKET text [note: 'Market or geographic grouping']
+  LOCATION text [note: 'Location display name']
+  SOURCE_SALE_ID number [note: 'Sale/transaction ID from the source system']
+  SOURCE_LINE_ITEM_ID number [note: 'Line item ID from the source system']
+  PMTREFNO number [note: 'Payment reference number']
+  RETURNED boolean [note: 'True if the line item was returned/refunded']
+  SOURCE_PRODUCT_ID float [note: 'Product/service ID from the source system']
+  ITEM text [note: 'Name of the product or service sold']
+  SOURCE_CATEGORY_ID number [note: 'Category ID from the source system']
+  CATEGORY text [note: 'Product/service category name']
+  ITEM_NOTES text [note: 'Free-text notes on the line item']
+  ITEMPRICE number [note: 'List price per unit']
+  ITEM_QUANTITY number [note: 'Quantity sold']
+  GROSS_SUBTOTAL number [note: 'Gross subtotal before discounts (ITEMPRICE × ITEM_QUANTITY)']
+  PROMOCODES array [note: 'Array of promo codes applied to this line item']
+  DISCOUNT_AMT number [note: 'Total discount amount applied']
+  DISCOUNTED_SUBTOTAL number [note: 'Subtotal after discounts']
+  ITEMTAX_DUE number [note: 'Tax amount due on this line item']
+  ITEM_TOTAL_DUE number [note: 'Total amount due (discounted subtotal + tax)']
+  TOTAL_PAID number [note: 'Total amount actually paid across all payment methods']
+  ITEMTAX_PAID number [note: 'Tax portion of the amount paid']
+  PAID_CHARGE_CREDIT number [note: 'Amount paid via credit/charge card']
+  PAID_EXTERNALPOS number [note: 'Amount paid via external POS terminal']
+  PAID_CASH number [note: 'Amount paid in cash']
+  PAID_CHECK number [note: 'Amount paid by check']
+  PAID_ACCOUNT_CREDIT number [note: 'Amount paid using account credit']
+  PAID_GIFT_CARD number [note: 'Amount paid with gift card']
+  PAID_LOYALTY_POINTS number [note: 'Amount paid using loyalty points']
+  PAID_BIZDEV_ACTIVATION_FUNDS number [note: 'Amount paid via business development activation funds']
+  PAID_LADIESWHOGOLF_EXTERNAL number [note: 'Amount paid via Ladies Who Golf external program']
+  BILLED_EXTERNAL_ACCTSRECEIVABLE_OTHER number [note: 'Amount billed to external accounts receivable (other)']
+  PAID_SHOPIFY number [note: 'Amount paid via Shopify']
+  PAID_MARKETING_OTHER number [note: 'Amount paid via other marketing payment methods']
+  PAID_MAY_DUPLICATE_CASH_FROM_ANOTHER_SOURCE number [note: 'Cash payment that may duplicate another source — use with caution']
+  INHERITED_GIFTCARD_DISCOUNT_PAID number [note: 'Discount paid via inherited gift card balance']
+  COMPED_PAYMENT number [note: 'Amount comped (zero-dollar payment)']
+  TOTAL_POS_DISCOUNT_AMT number [note: 'Total discount applied at the POS']
+  NET_POS_SALES_AMT number [note: 'Net sales amount after POS discounts']
+  INHERITED_GIFTCARD_DISCOUNT_CONTRIBUTION_TO_GROSS_REVENUE number [note: 'Inherited gift card discount contribution to gross revenue calculation']
+  NET_REVENUE number [note: 'Net revenue for this line item (primary reporting metric)']
+  GROSS_REVENUE number [note: 'Gross revenue before discounts and adjustments']
+  GIFTCARD_FRAUDULENT_AMT number [note: 'Amount flagged as potentially fraudulent gift card usage']
+  NET_REVENUE_CHARGE_CREDIT number [note: 'Net revenue attributed to credit/charge card payments']
+  NET_REVENUE_EXTERNALPOS number [note: 'Net revenue attributed to external POS']
+  NET_REVENUE_CASH number [note: 'Net revenue attributed to cash payments']
+  NET_REVENUE_CHECK number [note: 'Net revenue attributed to check payments']
+  NET_REVENUE_ACCOUNT_CREDIT number [note: 'Net revenue attributed to account credit']
+  NET_REVENUE_GIFT_CARD number [note: 'Net revenue attributed to gift card payments']
+  NET_REVENUE_LOYALTY_POINTS number [note: 'Net revenue attributed to loyalty points']
+  NET_REVENUE_BIZDEV_ACTIVATION_FUNDS number [note: 'Net revenue attributed to bizdev activation funds']
+  NET_REVENUE_LADIESWHOGOLF_EXTERNAL number [note: 'Net revenue attributed to Ladies Who Golf external']
+  NET_REVENUE_EXTERNAL_ACCTSRECEIVABLE_OTHER number [note: 'Net revenue attributed to external accounts receivable (other)']
+  REVENUE_SHOPIFY number [note: 'Revenue attributed to Shopify channel']
+  REVENUE_MARKETING_OTHER number [note: 'Revenue attributed to other marketing channels']
+  REVENUE_MAY_DUPLICATE_CASH_FROM_ANOTHER_SOURCE number [note: 'Revenue from cash that may be duplicated from another source — use with caution']
+  REVENUE_IS_DEFERRED boolean [note: 'True if this revenue should be recognized in a future period (e.g., gift cards, prepaid packages)']
+  LESSONCARD2023_REDEMPTION_NET_REVENUE_DEFERRED number [note: 'Deferred net revenue from 2023 lesson card redemptions']
+
+  Note: 'Grain is one row per sale line item across all source systems. Primary table for revenue reporting. Includes full payment method breakdown and net/gross revenue split. Use NET_REVENUE as the standard reporting metric.'
+}
