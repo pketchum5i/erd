@@ -288,3 +288,4 @@ Ref: utilization.utilization_by_hours_gap_filled.STUDIOID > business.locations.S
 Ref: utilization.utilization_by_hours_gap_filled.LOCATIONID > business.locations.LOCATIONID
 Ref: events.events_and_leads.MBO_STUDIOID > business.locations.STUDIOID
 Ref: events.events_and_leads.MBO_LOCATIONID > business.locations.LOCATIONID
+Ref: membership.all_contracts.salelocationid > business.locations.locationid
