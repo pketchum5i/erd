@@ -50,3 +50,26 @@ Cross-source integration layer.
 | Schema | Table | Description |
 |--------|-------|-------------|
 | `sales` | `line_item_sales` | One row per sale line item across MindBody and Square. Primary revenue reporting table — use `NET_REVENUE`. |
+
+---
+
+## Known Issues
+
+### WSL/Windows File Corruption
+
+When editing `.dbml` files from WSL on a Windows filesystem (`/mnt/c/...`), null bytes (`\x00`) can appear at the end of files due to filesystem sync issues between WSL and Windows. This corrupts the file and causes parsing errors.
+
+**To check for corruption:**
+```bash
+xxd your_file.dbml | tail -5  # Look for 00 00 00 sequences
+```
+
+**To fix:**
+```bash
+tr -d '\0' < your_file.dbml > temp && mv temp your_file.dbml
+```
+
+**Prevention:**
+- Always ensure files end with a newline
+- Run `git diff` before committing to spot binary artifacts
+- Consider editing files from native Windows or moving repo to WSL filesystem (`~/`)

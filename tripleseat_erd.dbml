@@ -58,7 +58,7 @@ Table contacts {
 
 Table locations {
   location_id number [pk]
-  site_id number
+  site_id number [ref: > sites.site_id]
   location_name text
   canonical_location_name text
   room_ids variant
@@ -76,7 +76,7 @@ Table locations {
 
 Table leads {
   lead_id number [pk]
-  site_id number
+  site_id number [ref: > sites.site_id]
   location_id number [ref: > locations.location_id]
   location_name text
   owner text
@@ -90,7 +90,7 @@ Table leads {
   additional_information text
   lead_form_id number
   lead_sources array
-  referral_source_id number
+  referral_source_id number [ref: > referral_sources.referral_source_id]
   referral_source_other text
   booking_lead boolean
   created_at timestamp_tz
@@ -225,6 +225,20 @@ Table events_status_changes {
   Note: 'Event status change history'
 }
 
+Table events_revenue_daily_ledger {
+  event_id number [pk, ref: > events.event_id]
+  as_of_date date [pk]
+  deposit_amount number
+  actual_amount number
+  grand_total number
+  true_total number
+  taxes number
+  gratuity number
+  net_revenue number
+  
+  Note: 'Daily snapshot of event revenue metrics'
+}
+
 // ===========================================
 // REFERENCE/LOOKUP TABLES
 // ===========================================
@@ -286,7 +300,7 @@ Table booking_custom_fields [headercolor: #9b59b6] {
 Table booking_status_changes [headercolor: #9b59b6] {
   booking_id number [ref: > bookings.booking_id]
   statuschangedatetime timestamp_ntz
-  created_by number
+  created_by number [ref: > users.user_id]
   status text
   previous_status text
   
@@ -420,7 +434,7 @@ Table booked_sims [headercolor: #f39c12] {
   sim_name text
   capacity variant
   location_id number [ref: > locations.location_id]
-  site_id number
+  site_id number [ref: > sites.site_id]
   is_unassigned boolean
   description text
   
@@ -458,67 +472,11 @@ Table users [headercolor: #95a5a6] {
   Note: 'View: Tripleseat users'
 }
 
-Table event_types [headercolor: #95a5a6] {
-  event_type_id number [pk]
-  event_type_name text
-  
-  Note: 'View: event type lookup'
-}
-
-Table contact_types [headercolor: #95a5a6] {
-  contact_type_id number [pk]
-  contact_type_name text
-  
-  Note: 'View: contact type lookup'
-}
-
-Table lead_sources [headercolor: #95a5a6] {
-  lead_source_id number [pk]
-  lead_source_name text
-  
-  Note: 'View: lead source lookup'
-}
-
-Table lead_types [headercolor: #95a5a6] {
-  lead_type_id number [pk]
-  lead_type_name text
-  
-  Note: 'View: lead type lookup'
-}
-
 Table referral_sources [headercolor: #95a5a6] {
   referral_source_id number [pk]
   referral_source_name text
   
   Note: 'View: referral source lookup'
-}
-
-Table lost_reasons [headercolor: #95a5a6] {
-  lost_reason_id number [pk]
-  lost_reason_name text
-  
-  Note: 'View: lost reason lookup'
-}
-
-Table task_types [headercolor: #95a5a6] {
-  task_type_id number [pk]
-  task_type_name text
-  
-  Note: 'View: task type lookup'
-}
-
-Table payment_methods [headercolor: #95a5a6] {
-  payment_method_id number [pk]
-  payment_method_name text
-  
-  Note: 'View: payment method lookup'
-}
-
-Table line_item_categories [headercolor: #95a5a6] {
-  category_id variant [pk]
-  category_name text
-  
-  Note: 'View: line item category lookup'
 }
 
 // ===========================================
@@ -548,8 +506,8 @@ Table billing_taxesandfees_location_values [headercolor: #e74c3c] {
 
 Table leads_agg [headercolor: #2c3e50] {
   lead_ids array
-  site_id number
-  location_id number
+  site_id number [ref: > sites.site_id]
+  location_id number [ref: > locations.location_id]
   location_name text
   owner text
   first_name text
@@ -610,6 +568,7 @@ TableGroup event_detail_tables {
   events_category_totals
   events_net_revenue
   events_status_changes
+  events_revenue_daily_ledger
 }
 
 TableGroup booking_views {
@@ -641,15 +600,7 @@ TableGroup room_views {
 TableGroup lookup_views {
   sites
   users
-  event_types
-  contact_types
-  lead_sources
-  lead_types
   referral_sources
-  lost_reasons
-  task_types
-  payment_methods
-  line_item_categories
   status_rank
 }
 
@@ -661,3 +612,11 @@ TableGroup billing_views {
 TableGroup aggregate_views {
   leads_agg
 }
+
+// ===========================================
+// ARRAY-BASED RELATIONSHIPS
+// ===========================================
+
+// Many-to-many relationships stored as arrays in variant columns
+Ref events_rooms: events.room_ids <> rooms.room_id
+Ref locations_rooms: locations.room_ids <> rooms.room_id

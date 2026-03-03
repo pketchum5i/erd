@@ -3,7 +3,7 @@
 // Generated from Snowflake schema
 // Data volume as of 2026-03-02: PROD_ENHANCED.MINDBODY — 30,894,867 rows, 1,250.26 MB
 // Avg daily growth (7-day, 17 of 71 tables): ~38,608 rows/day
-// Columns used: CREATIONDATETIME (RESERVATIONS, VISIT_DATA), EVENTINSTANCEORIGINATIONDATETIME (WEBAPI_APPOINTMENTS),
+// Columns used for avg daily volume: CREATIONDATETIME (RESERVATIONS, VISIT_DATA), EVENTINSTANCEORIGINATIONDATETIME (WEBAPI_APPOINTMENTS),
 //   PAYMENTDATE (PAYMENT_DATA), RUNDATETIME (EFT), CREATEDDATETIMEUTC (all others)
 
 Project prod_enhanced_mindbody {
@@ -12,6 +12,12 @@ Project prod_enhanced_mindbody {
     MindBody business management system data for fitness/wellness studios.
     Contains client information, appointments, sales transactions, memberships,
     contracts, payments, and scheduling data.
+    
+    IMPORTANT - Composite Key Pattern:
+    Most tables use composite primary keys (STUDIOID + entity_ID) for multi-tenant isolation.
+    FK references in this ERD point to the entity_ID column only (e.g., ref: > CLIENTS.CLIENTID),
+    but queries should always join on both STUDIOID and the entity_ID to ensure correct results
+    across studios. The STUDIOID constraint is implicit in all FK relationships.
   '''
 }
 
@@ -167,9 +173,9 @@ Table CLIENTSTATUSLOG {
   CLIENTSTATUSLOGID number [pk]
   STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
   CLIENTID number [ref: > CLIENTS.CLIENTID]
-  PREVSTATUSID number
+  PREVSTATUSID number [ref: > CLIENTSTATUSES.STATUSID]
   PREVSTATUS text
-  CURRENTSTATUSID number
+  CURRENTSTATUSID number [ref: > CLIENTSTATUSES.STATUSID]
   CURRENTSTATUS text
   UPDATEDDATETIME timestamp_tz
   MODIFIEDDATETIMEUTC timestamp_tz
@@ -450,7 +456,7 @@ Table CONTRACTSUSPENSIONTYPES {
 Table CLIENTCONTRACTS {
   CLIENTCONTRACTID number [pk]
   STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
-  SALELOCATIONID number
+  SALELOCATIONID number [ref: > LOCATIONS.LOCATIONID]
   CLIENTID number [ref: > CLIENTS.CLIENTID]
   RECCLIENTID number
   CONTRACTID number [ref: > CONTRACTS.CONTRACTID]
@@ -480,7 +486,7 @@ Table CLIENTCONTRACTS {
   TERMINATEDBY number
   TERMINATIONTIMESTAMP timestamp_tz
   TERMINATIONDATE date
-  TERMINATIONCODE number
+  TERMINATIONCODE number [ref: > CONTRACTTERMINATIONCODES.TERMINATIONCODE]
   TERMINATIONNOTES text
   IAGREED boolean
   IAGREEDATETIME timestamp_tz
@@ -741,7 +747,7 @@ Table PRODUCTS {
 }
 
 Table PRODUCTSERIESTYPESETTING {
-  PRODUCTID number [pk, ref: > PRODUCTS.PRODUCTID]
+  PRODUCTID float [pk, ref: > PRODUCTS.PRODUCTID]
   SERIESTYPEID number [pk, ref: > SERIESTYPES.SERIESTYPEID]
   STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
   SETTING number [pk]
@@ -836,7 +842,7 @@ Table SALES {
   SALETIMESTAMP timestamp_tz
   CLIENTID number [ref: > CLIENTS.CLIENTID]
   EMPLOYEEID number [ref: > TRAINERS.TRAINERID]
-  SALESREPID number
+  SALESREPID number [ref: > TRAINERS.TRAINERID]
   PAYMENTAMOUNT number
   AMOUNTTENDERED number
   PAYMENTMETHOD number
@@ -887,7 +893,7 @@ Table SALES_DETAILS {
   CATEGORY_DATACLEANSTATUS text
   COLORID number [ref: > COLORS.COLORID]
   SIZEID number
-  CLASSID number
+  CLASSID number [ref: > CLASSES.CLASSID]
   NOTAX boolean
   ITEMTAX1 number
   ITEMTAX2 number
@@ -990,7 +996,7 @@ Table PAYMENT_DATA {
   SERIESTYPE text
   SERVICETYPE text
   SERVICETYPE_DATACLEANSTATUS text
-  CLASSID number
+  CLASSID number [ref: > CLASSES.CLASSID]
   CLIENTID number [ref: > CLIENTS.CLIENTID]
   CLIENTCONTRACTID number [ref: > CLIENTCONTRACTS.CLIENTCONTRACTID]
   TERMINATIONCLIENTCONTRACTID number
@@ -1030,16 +1036,25 @@ Table PAYMENT_TYPES {
   Note: 'Payment type definitions (cash, credit, etc.)'
 }
 
+Table ALTERNATIVE_PAYMENT_TYPES {
+  PAYMENT_TYPE text [pk]
+  HAS_CASH_ORIGIN boolean
+  REAL_LIABILITY boolean
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Alternative payment type configurations'
+}
+
 Table RETURNS {
   RETURN_UID number [pk]
   STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
   LOCATIONID number [ref: > LOCATIONS.LOCATIONID]
-  ORIGINAL_SALEID number
-  ORIGINAL_SDID number
+  ORIGINAL_SALEID number [ref: > SALES.SALEID]
+  ORIGINAL_SDID number [ref: > SALES_DETAILS.SDID]
   ORIGINAL_SALESTIME timestamp_tz
   ORIGINAL_SALEDATE_OF_RECORD date
-  RETURNSALE_SALEID number
-  RETURNSALE_SDID number
+  RETURNSALE_SALEID number [ref: > SALES.SALEID]
+  RETURNSALE_SDID number [ref: > SALES_DETAILS.SDID]
   RETURN_TIMESTAMP timestamp_tz
   RETURN_SALEDATE_OF_RECORD date
   DESCRIPTION text
@@ -1060,7 +1075,7 @@ Table RETURNS {
   NUMCLASSES number
   REMAINING number
   REALREMAINING number
-  EMPLOYEEID number
+  EMPLOYEEID number [ref: > TRAINERS.TRAINERID]
   UNITPRICE number
   QUANTITY number
   RETURNAMOUNT number
@@ -1154,14 +1169,14 @@ Table CCTRANS {
 Table EFT {
   EFTSCHEDULEID number [pk]
   STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
-  LOCATIONID number
+  LOCATIONID number [ref: > LOCATIONS.LOCATIONID]
   HIDDEN boolean
   EFTGROUPID number
   CLIENTID number [ref: > CLIENTS.CLIENTID]
   RECCLIENTID number
   CLIENTCONTRACTID number [ref: > CLIENTCONTRACTS.CLIENTCONTRACTID]
   CONTRACTNAME text
-  SUSPENDID number
+  SUSPENDID number [ref: > CLIENTCONTRACTSUSPENSIONS.SUSPENDID]
   SUSPENDSTART date
   SUSPENDEND date
   STATUSMESSAGE text
@@ -1172,19 +1187,19 @@ Table EFT {
   DISCOUNTPERCENT float
   DISCOUNTAMOUNT number
   AMOUNT number
-  PMTREFNO number
-  SALEID number
-  SDID number
-  PRODUCTID float
+  PMTREFNO number [ref: > PAYMENT_DATA.PMTREFNO]
+  SALEID number [ref: > SALES.SALEID]
+  SDID number [ref: > SALES_DETAILS.SDID]
+  PRODUCTID float [ref: > PRODUCTS.PRODUCTID]
   DESCRIPTION text
-  CATEGORYID number
+  CATEGORYID number [ref: > CATEGORIES.CATEGORYID]
   CATEGORY text
   PRODUCT_DATACLEANSTATUS text
   CATEGORY_DATACLEANSTATUS text
-  CLASSID number
+  CLASSID number [ref: > CLASSES.CLASSID]
   RUNATPOS boolean
   RUNATONLINESTORE boolean
-  CCTRANSID number
+  CCTRANSID number [ref: > CCTRANS.TRANSACTIONNUMBER]
   ACCOUNTAUTOPAY boolean
   ACTIVATIONDATEOFFSET number
   PRORATEADDDAYSTODURATION number
@@ -1210,14 +1225,14 @@ Table EFT {
 Table GIFTDEBITCARDS {
   DEBITCARDID number [pk]
   STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
-  LOCATIONID number
+  LOCATIONID number [ref: > LOCATIONS.LOCATIONID]
   REGIONID number
   CARDTRANSACTIONID number
   DEBITCARDEXTID text
   AMOUNT number
   ISSUEDDATE date
-  LOCAL_SALEID number
-  ORIGINATING_SDID number
+  LOCAL_SALEID number [ref: > SALES.SALEID]
+  ORIGINATING_SDID number [ref: > SALES_DETAILS.SDID]
   RETURNFOR_SALEID number
   MISSING_PAYMENT boolean
   MODIFIEDDATETIMEUTC timestamp_tz
@@ -1299,7 +1314,7 @@ Table TRAINERS {
 Table TRAINERSCHEDULES {
   TRAINERSCHEDULE_ID number [pk]
   STUDIOID number [pk, ref: > STUDIOS.STUDIOID]
-  LOCATIONID number
+  LOCATIONID number [ref: > LOCATIONS.LOCATIONID]
   AVAILNAME text
   TRAINERID number [ref: > TRAINERS.TRAINERID]
   FIRSTNAME text
@@ -1321,7 +1336,7 @@ Table TRAINERSCHEDULES {
   DAYFRI boolean
   DAYSAT boolean
   DAYSUN boolean
-  CLASSID number
+  CLASSID number [ref: > CLASSES.CLASSID]
   SHOWPUBLIC boolean
   UNAVAILABLE boolean
   SINGLEDAYAVAILABILITY boolean
@@ -1380,7 +1395,7 @@ Table CLASSES {
   DROPINRESERVED number
   WAITLISTSIZE number
   FREE boolean
-  EMPLOYEEID number
+  EMPLOYEEID number [ref: > TRAINERS.TRAINERID]
   CREATEDBY number
   CREATIONDATETIME timestamp_tz
   CLASSUPDATEDDATETIME timestamp_tz
@@ -1854,4 +1869,7 @@ Table INPUT_TYPEGROUPS {
   STUDIOID number [pk, not null, ref: > STUDIOS.STUDIOID]
   TYPEGROUP text [not null]
   ACTIVE boolean [not null]
-  MODIFIEDDATET                                                                   
+  MODIFIEDDATETIMEUTC timestamp_tz
+  
+  Note: 'Typegroup input/override table'
+}
